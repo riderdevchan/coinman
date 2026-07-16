@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Coin Man</title>
-    <!-- เชื่อมต่อไฟล์ Manifest สำหรับติดตั้ง -->
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -21,12 +20,11 @@
 
     <div class="w-full h-full flex flex-col bg-gray-50">
         
-        <!-- ส่วนหัว (Header) + แถบแจ้งเตือนปุ่มติดตั้งแอป -->
+        <!-- ส่วนหัว (Header) + แถบติดตั้งแอป -->
         <div class="bg-gradient-to-r from-yellow-500 to-amber-600 text-white shadow-md flex-none">
             <div class="py-3 text-center">
                 <h1 class="text-2xl font-bold tracking-wide flex items-center justify-center gap-1">🪙 Coin Man</h1>
             </div>
-            <!-- ปุ่มกดติดตั้ง จะแสดงขึ้นมาอัตโนมัติหากเบราว์เซอร์รองรับ -->
             <div id="installAppArea" class="hidden bg-amber-700/50 px-4 py-1.5 text-xs flex justify-between items-center border-t border-amber-400/30">
                 <span>⚡ ติดตั้ง Coin Man ลงบนหน้าจอมือถือของคุณ</span>
                 <button onclick="triggerInstall()" class="bg-white text-amber-700 px-2.5 py-1 rounded font-bold shadow-sm active:scale-95">ติดตั้ง</button>
@@ -89,21 +87,39 @@
                     <label class="text-[11px] font-semibold text-gray-400 block mb-1 text-left pl-1">📥 ระบุจำนวนเหรียญที่ต้องการบวกเพิ่ม:</label>
                     <input type="number" id="inputCoins" placeholder="ใส่จำนวนเหรียญ..." inputmode="numeric" 
                            onkeydown="if(event.key==='Enter') saveTypedCoins()" 
-                           class="w-full p-3.5 border-2 border-emerald-500 rounded-xl text-center font-bold text-2xl text-gray-800 focus:outline-none bg-emerald-50/30 shadow-inner">
+                           class="w-full p-3.5 border-2 border-emerald-500 rounded-xl text-center font-bold text-2xl text-gray-800 focus:none bg-emerald-50/30 shadow-inner">
                 </div>
             </div>
 
-            <!-- ส่วนล่างสุด: Progress Bar -->
-            <div class="space-y-1 flex-none pt-2 pb-4">
-                <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden relative shadow-inner">
-                    <div id="progressBar" class="bg-gradient-to-r from-amber-500 via-gray-400 to-yellow-500 h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
+            <!-- ส่วนล่างสุด: Progress Bar และ ระบบเช็คระยะทาง GPS -->
+            <div class="space-y-3 flex-1 flex flex-col justify-end pb-4">
+                
+                <!-- Progress Bar -->
+                <div class="space-y-1 flex-none">
+                    <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden relative shadow-inner">
+                        <div id="progressBar" class="bg-gradient-to-r from-amber-500 via-gray-400 to-yellow-500 h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                    <div class="flex justify-between text-[10px] text-gray-400 font-bold px-1">
+                        <span>0</span>
+                        <span id="lblT1" class="text-amber-700">10</span>
+                        <span id="lblT2" class="text-gray-500">30</span>
+                        <span id="lblT3" class="text-yellow-600">50+</span>
+                    </div>
                 </div>
-                <div class="flex justify-between text-[10px] text-gray-400 font-bold px-1">
-                    <span>0</span>
-                    <span id="lblT1" class="text-amber-700">10</span>
-                    <span id="lblT2" class="text-gray-500">30</span>
-                    <span id="lblT3" class="text-yellow-600">50+</span>
+
+                <!-- เพิ่มฟีเจอร์: ระบบวัดระยะทาง GPS ด้านล่างสุด -->
+                <div class="bg-white border border-gray-100 rounded-xl p-3 shadow-sm flex items-center justify-between flex-none">
+                    <div class="text-left">
+                        <p class="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">ระยะทางวิ่งวันนี้ (GPS)</p>
+                        <p class="text-2xl font-extrabold text-slate-700"><span id="distanceCount">0.00</span> <span class="text-sm font-bold text-slate-500">กม.</span></p>
+                    </div>
+                    <div>
+                        <button id="gpsBtn" onclick="toggleGPS()" class="bg-slate-600 hover:bg-slate-700 text-white text-xs px-3 py-2 rounded-lg font-bold shadow-sm transition active:scale-95 flex items-center gap-1">
+                            🛰️ เปิดจับ GPS
+                        </button>
+                    </div>
                 </div>
+
             </div>
 
         </div>
@@ -112,6 +128,9 @@
     <script>
         let coins = parseInt(localStorage.getItem('savedCoins'));
         if (isNaN(coins)) coins = 0;
+
+        // โหลดค่าระยะทางสะสมเก่าจากเครื่อง (ถ้าไม่มีให้เริ่มต้นที่ 0.0)
+        let totalDistance = parseFloat(localStorage.getItem('savedDistance')) || 0.0;
 
         let t1 = parseInt(localStorage.getItem('savedT1')) || 10;
         let t2 = parseInt(localStorage.getItem('savedT2')) || 30;
@@ -164,9 +183,11 @@
         }
 
         function resetCoins() {
-            if (confirm('ต้องการรีเซ็ตล้างยอดเหรียญสะสมรวมให้เป็น 0 ใช่หรือไม่?')) {
+            if (confirm('ต้องการรีเซ็ตล้างยอดเหรียญและระยะทางทั้งหมดให้เป็น 0 ใช่หรือไม่?')) {
                 coins = 0;
+                totalDistance = 0.0; // รีเซ็ตระยะทางด้วย
                 localStorage.setItem('savedCoins', coins);
+                localStorage.setItem('savedDistance', totalDistance.toFixed(2));
                 updateUI();
                 setFocusToInput();
             }
@@ -174,6 +195,7 @@
 
         function updateUI() {
             document.getElementById('coinCount').innerText = coins;
+            document.getElementById('distanceCount').innerText = totalDistance.toFixed(2); // อัปเดตระยะทางทศนิยม 2 ตำแหน่ง
             document.getElementById('lblT1').innerText = t1;
             document.getElementById('lblT2').innerText = t2;
             document.getElementById('lblT3').innerText = t3 + '+';
@@ -215,10 +237,80 @@
         updateUI();
 
         // ----------------------------------------------------
-        // ส่วนของระบบติดตั้งลงเครื่อง (PWA Registration Script)
+        // ระบบติดตามคำนวณระยะทางจาก GPS (Geolocation Tracking)
         // ----------------------------------------------------
-        let deferredPrompt;
+        let watchId = null;
+        let lastLat = null;
+        let lastLon = null;
 
+        function toggleGPS() {
+            const btn = document.getElementById('gpsBtn');
+            
+            if (watchId === null) {
+                if ("geolocation" in navigator) {
+                    // เริ่มต้นเปิดระบบจับพิกัดแบบความแม่นยำสูง (High Accuracy) เหมาะสำหรับขี่รถ
+                    watchId = navigator.geolocation.watchPosition(successGPS, errorGPS, {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 0
+                    });
+                    btn.className = "bg-emerald-500 hover:bg-emerald-600 text-white text-xs px-3 py-2 rounded-lg font-bold shadow-sm transition active:scale-95 flex items-center gap-1 animate-pulse";
+                    btn.innerText = "🛰️ กำลังจับ GPS...";
+                } else {
+                    alert("อุปกรณ์ของคุณไม่รองรับระบบ GPS ครับ");
+                }
+            } else {
+                // กดปิดระบบจับพิกัดเพื่อประหยัดแบตเตอรี่
+                navigator.geolocation.clearWatch(watchId);
+                watchId = null;
+                lastLat = null;
+                lastLon = null;
+                btn.className = "bg-slate-600 hover:bg-slate-700 text-white text-xs px-3 py-2 rounded-lg font-bold shadow-sm transition active:scale-95 flex items-center gap-1";
+                btn.innerText = "🛰️ เปิดจับ GPS";
+            }
+        }
+
+        function successGPS(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            const accuracy = position.coords.accuracy;
+
+            // ถ้าระบบมีความแม่นยำเพียงพอ (น้อยกว่า 30 เมตร) และมีพิกัดก่อนหน้า จึงนำมาคำนวณระยะห่าง
+            if (lastLat !== null && lastLon !== null && accuracy < 30) {
+                let dist = calculateDistance(lastLat, lastLon, lat, lon);
+                
+                // ป้องกันสัญญาณกระโดดเออเร่อ (ถ้าคำนวณแล้ววิ่งเกิน 2 กิโลเมตรในพริบตาเดียว ให้ถือเป็นสัญญาณขัดข้อง)
+                if (dist > 0 && dist < 2) {
+                    totalDistance += dist;
+                    localStorage.setItem('savedDistance', totalDistance.toFixed(2));
+                    document.getElementById('distanceCount').innerText = totalDistance.toFixed(2);
+                }
+            }
+
+            // บันทึกพิกัดปัจจุบันเก็บไว้เป็นพิกัดอ้างอิงรอบถัดไป
+            lastLat = lat;
+            lastLon = lon;
+        }
+
+        function errorGPS(err) {
+            console.warn(`GPS Error (${err.code}): ${err.message}`);
+        }
+
+        // สูตรคำนวณระยะทางระหว่างจุดพิกัด 2 จุดบนผิวโลก (Haversine Formula) คืนค่าเป็นกิโลเมตร
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // รัศมีโลก (กิโลเมตร)
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c; 
+        }
+
+        // PWA Registration Script
+        let deferredPrompt;
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js')
                 .then(() => console.log('Service Worker ลงทะเบียนสำเร็จ'))
@@ -228,7 +320,6 @@
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault();
             deferredPrompt = e;
-            // แสดงแถบปุ่มติดตั้งด้านบนหัวแอป
             document.getElementById('installAppArea').classList.remove('hidden');
         });
 
@@ -237,7 +328,6 @@
                 deferredPrompt.prompt();
                 deferredPrompt.userChoice.then((choiceResult) => {
                     if (choiceResult.outcome === 'accepted') {
-                        console.log('ผู้ใช้กดยอมรับการติดตั้ง');
                         document.getElementById('installAppArea').classList.add('hidden');
                     }
                     deferredPrompt = null;
