@@ -1,0 +1,17 @@
+{
+  "name": "Coin Man Tracker",
+  "short_name": "Coin Man",
+  "start_url": "coin-man.html",
+  "display": "standalone",
+  "background_color": "#f9fafb",
+  "theme_color": "#f59e0b",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/217/217853.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
