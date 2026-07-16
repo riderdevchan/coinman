@@ -1,7 +1,7 @@
 {
   "name": "Coin Man",
   "short_name": "Coin Man",
-  "start_url": "./",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#f9fafb",
   "theme_color": "#f59e0b",
