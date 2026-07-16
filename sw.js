@@ -1,10 +1,10 @@
-const CACHE_NAME = 'coinman-v1';
+const CACHE_NAME = 'coinman-v2';
 const ASSETS = [
   './',
+  './index.html',
   './manifest.json'
 ];
 
-// ติดตั้งและเก็บ Cache
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -13,7 +13,6 @@ self.addEventListener('install', (e) => {
   );
 });
 
-// เรียกใช้งานไฟล์จาก Cache เมื่อไม่มีเน็ต
 self.addEventListener('fetch', (e) => {
   e.respondWith(
     caches.match(e.request).then((response) => {
