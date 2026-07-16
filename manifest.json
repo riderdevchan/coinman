@@ -1,7 +1,7 @@
 {
-  "name": "Coin Man Tracker",
+  "name": "Coin Man",
   "short_name": "Coin Man",
-  "start_url": "coin-man.html",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#f9fafb",
   "theme_color": "#f59e0b",
