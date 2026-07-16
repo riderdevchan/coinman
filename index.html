@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Coin Man</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Kanit', sans-serif; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+    </style>
+</head>
+<body class="bg-gray-50 h-screen overflow-hidden flex flex-col justify-between">
+
+    <div class="w-full h-full flex flex-col bg-gray-50">
+        
+        <!-- ส่วนหัว (Header) -->
+        <div class="bg-gradient-to-r from-yellow-500 to-amber-600 text-white shadow-md flex-none">
+            <div class="py-3 text-center">
+                <h1 class="text-2xl font-bold tracking-wide flex items-center justify-center gap-1">🪙 Coin Man</h1>
+            </div>
+            <div id="installAppArea" class="hidden bg-amber-700/50 px-4 py-1.5 text-xs flex justify-between items-center border-t border-amber-400/30">
+                <span>⚡ ติดตั้ง Coin Man ลงบนหน้าจอมือถือของคุณ</span>
+                <button onclick="triggerInstall()" class="bg-white text-amber-700 px-2.5 py-1 rounded font-bold shadow-sm active:scale-95">ติดตั้ง</button>
+            </div>
+        </div>
+
+        <!-- ส่วนเนื้อหาหลัก -->
+        <div class="px-5 py-3 flex-1 flex flex-col space-y-2 overflow-hidden">
+            
+            <!-- ตั้งค่าหลุมประจำวัน -->
+            <div class="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm flex-none">
+                <h2 class="text-xs font-semibold text-yellow-800 mb-2 flex items-center gap-1">⚙️ ตั้งค่าเกณฑ์หลุมประจำวัน</h2>
+                <div class="grid grid-cols-3 gap-2">
+                    <div>
+                        <label class="text-[10px] text-gray-500 block mb-0.5 text-center font-medium">หลุม 1</label>
+                        <input type="number" id="target1" value="10" inputmode="numeric" class="w-full p-2 border border-gray-200 rounded-lg text-center font-bold text-amber-700 text-base focus:outline-yellow-500 bg-gray-50">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-gray-500 block mb-0.5 text-center font-medium">หลุม 2</label>
+                        <input type="number" id="target2" value="30" inputmode="numeric" class="w-full p-2 border border-gray-200 rounded-lg text-center font-bold text-gray-500 text-base focus:outline-yellow-500 bg-gray-50">
+                    </div>
+                    <div>
+                        <label class="text-[10px] text-gray-500 block mb-0.5 text-center font-medium">หลุม 3</label>
+                        <input type="number" id="target3" value="50" inputmode="numeric" class="w-full p-2 border border-gray-200 rounded-lg text-center font-bold text-yellow-600 text-base focus:outline-yellow-500 bg-gray-50">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-3 gap-2 mt-2">
+                    <button onclick="updateSettings()" class="col-span-2 bg-yellow-600 hover:bg-yellow-700 text-white text-xs py-2 rounded-lg font-semibold transition active:scale-98 shadow-sm">
+                        บันทึกเป้าหมายหลุม
+                    </button>
+                    <button onclick="resetCoins()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs py-2 rounded-lg font-semibold transition active:scale-98 shadow-sm">
+                        🔄 รีเซ็ต 0
+                    </button>
+                </div>
+            </div>
+
+            <!-- กล่องการ์ดครอบส่วนแสดงผลหลัก (ปรับปรุง: ย้ายเอา Progress Bar เข้ามารวมไว้ในนี้ด้วยเพื่อให้ยกขึ้นมาชิดด้านบน) -->
+            <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex-none space-y-4">
+                <div class="space-y-0.5 text-center">
+                    <p class="text-gray-400 text-xs uppercase tracking-wider font-semibold">ยอดเหรียญสะสมรวม</p>
+                    <div class="text-6xl font-extrabold text-gray-800 flex justify-center items-center gap-2">
+                        <span id="coinCount">0</span>
+                        <span class="text-4xl">🪙</span>
+                    </div>
+                </div>
+                
+                <div class="space-y-2 text-center">
+                    <div>
+                        <span id="levelBadge" class="inline-block px-5 py-1.5 rounded-full text-base font-bold bg-gray-200 text-gray-700 shadow-sm">⚪ กำลังเริ่ม</span>
+                    </div>
+                    <div>
+                        <div id="remainingPoints" class="text-base font-bold text-emerald-600 bg-emerald-50 inline-block px-4 py-2 rounded-xl border border-emerald-100 shadow-sm">
+                            อีก 0 แต้ม จะถึงหลุมถัดไป
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full pt-1">
+                    <label class="text-[11px] font-semibold text-gray-400 block mb-1 text-left pl-1">📥 ระบุจำนวนเหรียญที่ต้องการบวกเพิ่ม:</label>
+                    <input type="number" id="inputCoins" placeholder="ใส่จำนวนเหรียญ..." inputmode="numeric" 
+                           onkeydown="if(event.key==='Enter') saveTypedCoins()" 
+                           class="w-full p-3.5 border-2 border-emerald-500 rounded-xl text-center font-bold text-2xl text-gray-800 focus:outline-none bg-emerald-50/30 shadow-inner">
+                </div>
+
+                <!-- ย้าย Progress Bar ขึ้นมาอยู่ตรงนี้เพื่อให้ชิดกระชับหน้าจอ -->
+                <div class="space-y-1 pt-2">
+                    <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden relative shadow-inner">
+                        <div id="progressBar" class="bg-gradient-to-r from-amber-500 via-gray-400 to-yellow-500 h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                    <div class="flex justify-between text-[10px] text-gray-400 font-bold px-1">
+                        <span>0</span>
+                        <span id="lblT1" class="text-amber-700">10</span>
+                        <span id="lblT2" class="text-gray-500">30</span>
+                        <span id="lblT3" class="text-yellow-600">50+</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        let coins = parseInt(localStorage.getItem('savedCoins'));
+        if (isNaN(coins)) coins = 0;
+
+        let t1 = parseInt(localStorage.getItem('savedT1')) || 10;
+        let t2 = parseInt(localStorage.getItem('savedT2')) || 30;
+        let t3 = parseInt(localStorage.getItem('savedT3')) || 50;
+
+        document.getElementById('target1').value = t1;
+        document.getElementById('target2').value = t2;
+        document.getElementById('target3').value = t3;
+
+        window.onload = function() {
+            setFocusToInput();
+        };
+
+        function setFocusToInput() {
+            const inputElement = document.getElementById('inputCoins');
+            inputElement.value = ''; 
+            inputElement.focus();
+        }
+
+        function updateSettings() {
+            t1 = parseInt(document.getElementById('target1').value) || 0;
+            t2 = parseInt(document.getElementById('target2').value) || 0;
+            t3 = parseInt(document.getElementById('target3').value) || 0;
+
+            if (t1 >= t2 || t2 >= t3) {
+                alert('⚠️ กรุณาตั้งค่าให้ หลุม 3 มากกว่า หลุม 2 และ หลุม 2 มากกว่า หลุม 1 ครับ');
+                return;
+            }
+
+            localStorage.setItem('savedT1', t1);
+            localStorage.setItem('savedT2', t2);
+            localStorage.setItem('savedT3', t3);
+            updateUI();
+            alert('⚙️ บันทึกเกณฑ์หลุมประจำวันสำเร็จ');
+            setFocusToInput();
+        }
+
+        function saveTypedCoins() {
+            const inputElement = document.getElementById('inputCoins');
+            let typedValue = parseInt(inputElement.value);
+            
+            if (!isNaN(typedValue) && typedValue > 0) {
+                coins += typedValue;
+                localStorage.setItem('savedCoins', coins);
+                updateUI();
+            }
+            
+            inputElement.value = ''; 
+            inputElement.blur();     
+        }
+
+        function resetCoins() {
+            if (confirm('ต้องการรีเซ็ตล้างยอดเหรียญสะสมรวมให้เป็น 0 ใช่หรือไม่?')) {
+                coins = 0;
+                localStorage.setItem('savedCoins', coins);
+                updateUI();
+                setFocusToInput();
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('coinCount').innerText = coins;
+            document.getElementById('lblT1').innerText = t1;
+            document.getElementById('lblT2').innerText = t2;
+            document.getElementById('lblT3').innerText = t3 + '+';
+
+            let percentage = (coins / t3) * 100;
+            if (percentage > 100) percentage = 100;
+            if (percentage < 0) percentage = 0;
+            document.getElementById('progressBar').style.width = percentage + '%';
+
+            const badge = document.getElementById('levelBadge');
+            const remText = document.getElementById('remainingPoints');
+            
+            if (coins >= t3) {
+                badge.className = "inline-block px-4 py-1 rounded-full text-sm font-bold bg-yellow-500 text-white animate-bounce shadow-sm";
+                badge.innerText = "🏆 ถึงเป้าหมาย: หลุม 3 (Gold)";
+                remText.className = "text-base font-bold text-yellow-600 bg-yellow-50 inline-block px-4 py-2 rounded-xl border border-yellow-100 shadow-sm";
+                remText.innerText = "🎉 สำเร็จเป้าหมายสูงสุดแล้ว!";
+            } else if (coins >= t2) {
+                badge.className = "inline-block px-4 py-1 rounded-full text-sm font-bold bg-gray-400 text-white shadow-sm";
+                badge.innerText = "🥈 ถึงเป้าหมาย: หลุม 2 (Silver)";
+                let diff = t3 - coins;
+                remText.className = "text-base font-bold text-amber-600 bg-amber-50 inline-block px-4 py-2 rounded-xl border border-amber-100 shadow-sm";
+                remText.innerText = `อีก 🪙 ${diff} แต้ม จะถึง หลุม 3`;
+            } else if (coins >= t1) {
+                badge.className = "inline-block px-4 py-1 rounded-full text-sm font-bold bg-amber-600 text-white shadow-sm";
+                badge.innerText = "🥉 ถึงเป้าหมาย: หลุม 1 (Bronze)";
+                let diff = t2 - coins;
+                remText.className = "text-base font-bold text-gray-600 bg-gray-50 inline-block px-4 py-2 rounded-xl border border-gray-100 shadow-sm";
+                remText.innerText = `อีก 🪙 ${diff} แต้ม จะถึง หลุม 2`;
+            } else {
+                badge.className = "inline-block px-4 py-1 rounded-full text-sm font-bold bg-gray-200 text-gray-700 shadow-sm";
+                badge.innerText = "⚪ กำลังเดินทางไปหลุมแรก";
+                let diff = t1 - coins;
+                remText.className = "text-base font-bold text-emerald-600 bg-emerald-50 inline-block px-4 py-2 rounded-xl border border-emerald-100 shadow-sm";
+                remText.innerText = `อีก 🪙 ${diff} แต้ม จะถึง หลุม 1`;
+            }
+        }
+
+        updateUI();
+
+        // PWA Registration Script
+        let deferredPrompt;
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+                .then(() => console.log('Service Worker ลงทะเบียนสำเร็จ'))
+                .catch(err => console.log('Service Worker ผิดพลาด:', err));
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installAppArea').classList.remove('hidden');
+        });
+
+        function triggerInstall() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        document.getElementById('installAppArea').classList.add('hidden');
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        }
+    </script>
+</body>
+</html>
