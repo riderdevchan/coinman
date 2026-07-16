@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Coin Man</title>
+    <!-- เชื่อมต่อไฟล์ Manifest สำหรับติดตั้ง -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
@@ -16,12 +21,19 @@
 
     <div class="w-full h-full flex flex-col bg-gray-50">
         
-        <!-- ส่วนหัว (Header) -->
-        <div class="bg-gradient-to-r from-yellow-500 to-amber-600 py-3 text-white text-center shadow-md flex-none">
-            <h1 class="text-2xl font-bold tracking-wide flex items-center justify-center gap-1">🪙 Coin Man</h1>
+        <!-- ส่วนหัว (Header) + แถบแจ้งเตือนปุ่มติดตั้งแอป -->
+        <div class="bg-gradient-to-r from-yellow-500 to-amber-600 text-white shadow-md flex-none">
+            <div class="py-3 text-center">
+                <h1 class="text-2xl font-bold tracking-wide flex items-center justify-center gap-1">🪙 Coin Man</h1>
+            </div>
+            <!-- ปุ่มกดติดตั้ง จะแสดงขึ้นมาอัตโนมัติหากเบราว์เซอร์รองรับ -->
+            <div id="installAppArea" class="hidden bg-amber-700/50 px-4 py-1.5 text-xs flex justify-between items-center border-t border-amber-400/30">
+                <span>⚡ ติดตั้ง Coin Man ลงบนหน้าจอมือถือของคุณ</span>
+                <button onclick="triggerInstall()" class="bg-white text-amber-700 px-2.5 py-1 rounded font-bold shadow-sm active:scale-95">ติดตั้ง</button>
+            </div>
         </div>
 
-        <!-- ส่วนเนื้อหาหลัก ปรับระยะ mt-2 ให้ขึ้นมาชิดด้านบนขึ้น -->
+        <!-- ส่วนเนื้อหาหลัก -->
         <div class="px-5 py-3 flex-1 flex flex-col space-y-2 overflow-hidden">
             
             <!-- ตั้งค่าหลุมประจำวัน -->
@@ -52,7 +64,7 @@
                 </div>
             </div>
 
-            <!-- กล่องการ์ดครอบส่วนแสดงผลหลัก (เอาพื้นที่ว่างห่างๆ ออก ดันขึ้นชิดด้านบน) -->
+            <!-- กล่องการ์ดครอบส่วนแสดงผลหลัก -->
             <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex-none space-y-3">
                 <div class="space-y-0.5 text-center">
                     <p class="text-gray-400 text-xs uppercase tracking-wider font-semibold">ยอดเหรียญสะสมรวม</p>
@@ -62,7 +74,6 @@
                     </div>
                 </div>
                 
-                <!-- วงที่สอง: ปรับปรุงขยายขนาดฟอนต์ของป้ายบอกระดับหลุมและแต้มที่เหลือให้ใหญ่และชัดเจนขึ้น -->
                 <div class="space-y-2 text-center">
                     <div>
                         <span id="levelBadge" class="inline-block px-5 py-1.5 rounded-full text-base font-bold bg-gray-200 text-gray-700 shadow-sm">⚪ กำลังเริ่ม</span>
@@ -82,7 +93,7 @@
                 </div>
             </div>
 
-            <!-- ส่วนล่างสุด: Progress Bar (ขยับขึ้นมาตามเนื้อหา) -->
+            <!-- ส่วนล่างสุด: Progress Bar -->
             <div class="space-y-1 flex-none pt-2 pb-4">
                 <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden relative shadow-inner">
                     <div id="progressBar" class="bg-gradient-to-r from-amber-500 via-gray-400 to-yellow-500 h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
@@ -176,29 +187,25 @@
             const remText = document.getElementById('remainingPoints');
             
             if (coins >= t3) {
-                badge.className = "inline-block px-5 py-1.5 rounded-full text-base font-bold bg-yellow-500 text-white animate-bounce shadow-sm";
+                badge.className = "inline-block px-4 py-1 rounded-full text-sm font-bold bg-yellow-500 text-white animate-bounce shadow-sm";
                 badge.innerText = "🏆 ถึงเป้าหมาย: หลุม 3 (Gold)";
-                
                 remText.className = "text-base font-bold text-yellow-600 bg-yellow-50 inline-block px-4 py-2 rounded-xl border border-yellow-100 shadow-sm";
                 remText.innerText = "🎉 สำเร็จเป้าหมายสูงสุดแล้ว!";
             } else if (coins >= t2) {
-                badge.className = "inline-block px-5 py-1.5 rounded-full text-base font-bold bg-gray-400 text-white shadow-sm";
+                badge.className = "inline-block px-4 py-1 rounded-full text-sm font-bold bg-gray-400 text-white shadow-sm";
                 badge.innerText = "🥈 ถึงเป้าหมาย: หลุม 2 (Silver)";
-                
                 let diff = t3 - coins;
                 remText.className = "text-base font-bold text-amber-600 bg-amber-50 inline-block px-4 py-2 rounded-xl border border-amber-100 shadow-sm";
                 remText.innerText = `อีก 🪙 ${diff} แต้ม จะถึง หลุม 3`;
             } else if (coins >= t1) {
-                badge.className = "inline-block px-5 py-1.5 rounded-full text-base font-bold bg-amber-600 text-white shadow-sm";
+                badge.className = "inline-block px-4 py-1 rounded-full text-sm font-bold bg-amber-600 text-white shadow-sm";
                 badge.innerText = "🥉 ถึงเป้าหมาย: หลุม 1 (Bronze)";
-                
                 let diff = t2 - coins;
                 remText.className = "text-base font-bold text-gray-600 bg-gray-50 inline-block px-4 py-2 rounded-xl border border-gray-100 shadow-sm";
                 remText.innerText = `อีก 🪙 ${diff} แต้ม จะถึง หลุม 2`;
             } else {
-                badge.className = "inline-block px-5 py-1.5 rounded-full text-base font-bold bg-gray-200 text-gray-700 shadow-sm";
+                badge.className = "inline-block px-4 py-1 rounded-full text-sm font-bold bg-gray-200 text-gray-700 shadow-sm";
                 badge.innerText = "⚪ กำลังเดินทางไปหลุมแรก";
-                
                 let diff = t1 - coins;
                 remText.className = "text-base font-bold text-emerald-600 bg-emerald-50 inline-block px-4 py-2 rounded-xl border border-emerald-100 shadow-sm";
                 remText.innerText = `อีก 🪙 ${diff} แต้ม จะถึง หลุม 1`;
@@ -206,6 +213,37 @@
         }
 
         updateUI();
+
+        // ----------------------------------------------------
+        // ส่วนของระบบติดตั้งลงเครื่อง (PWA Registration Script)
+        // ----------------------------------------------------
+        let deferredPrompt;
+
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js')
+                .then(() => console.log('Service Worker ลงทะเบียนสำเร็จ'))
+                .catch(err => console.log('Service Worker ผิดพลาด:', err));
+        }
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            // แสดงแถบปุ่มติดตั้งด้านบนหัวแอป
+            document.getElementById('installAppArea').classList.remove('hidden');
+        });
+
+        function triggerInstall() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('ผู้ใช้กดยอมรับการติดตั้ง');
+                        document.getElementById('installAppArea').classList.add('hidden');
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        }
     </script>
 </body>
 </html>
