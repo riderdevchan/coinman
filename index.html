@@ -28,16 +28,16 @@
         <!-- ส่วนเนื้อหาหลัก -->
         <div class="px-5 py-3 flex-1 flex flex-col space-y-2 overflow-y-auto">
             
-            <!-- ตั้งค่าเกณฑ์เงินประจำวัน -->
+            <!-- ตั้งค่าเกณฑ์ประจำวัน -->
             <div class="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm flex-none">
                 <h2 class="text-xs font-semibold text-yellow-800 mb-2 flex items-center justify-between">
-                    ⚙️ ตั้งค่าเกณฑ์เงินประจำวัน
+                    ⚙️ ตั้งค่าเกณฑ์ประจำวัน
                 </h2>
                 <div id="ocrStatus" class="text-[10px] text-blue-600 mb-2 hidden text-center italic">กำลังสแกนรูปภาพ... โปรดรอสักครู่</div>
                 
-                <!-- ชุดที่ 1: ตั้งค่าเกณฑ์หลุม (จำนวนรอบ) + แยกปุ่มสแกนเฉพาะรอบ -->
+                <!-- ชุดที่ 1: ตั้งค่าเกณฑ์จำนวนเหรียญ + แยกปุ่มสแกนเฉพาะรอบ -->
                 <div class="flex justify-between items-center mb-1">
-                    <span class="text-[11px] font-semibold text-amber-800">📊 เกณฑ์จำนวนรอบ (หลุม)</span>
+                    <span class="text-[11px] font-semibold text-amber-800">📊 เกณฑ์จำนวนเหรียญ </span>
                     <button onclick="document.getElementById('ocrInputTarget').click()" class="bg-amber-600 text-white px-2 py-0.5 rounded text-[10px] font-bold shadow-sm active:scale-95">📸 สแกนเกณฑ์รอบ</button>
                     <input type="file" id="ocrInputTarget" accept="image/*" class="hidden" onchange="processOCR(event, 'target')">
                 </div>
@@ -64,15 +64,15 @@
                 </div>
                 <div class="grid grid-cols-3 gap-2">
                     <div>
-                        <label class="text-[10px] text-gray-500 block mb-0.5 text-center font-medium">เงิน 1 (บาท)</label>
+                        <label class="text-[10px] text-gray-500 block mb-0.5 text-center font-medium">หลุม 1</label>
                         <input type="number" id="money1" value="300" inputmode="numeric" class="w-full p-2 border border-gray-200 rounded-lg text-center font-bold text-amber-700 text-base focus:outline-yellow-500 bg-gray-50">
                     </div>
                     <div>
-                        <label class="text-[10px] text-gray-500 block mb-0.5 text-center font-medium">เงิน 2 (บาท)</label>
+                        <label class="text-[10px] text-gray-500 block mb-0.5 text-center font-medium">หลุม 2</label>
                         <input type="number" id="money2" value="395" inputmode="numeric" class="w-full p-2 border border-gray-200 rounded-lg text-center font-bold text-gray-500 text-base focus:outline-yellow-500 bg-gray-50">
                     </div>
                     <div>
-                        <label class="text-[10px] text-gray-500 block mb-0.5 text-center font-medium">เงิน 3 (บาท)</label>
+                        <label class="text-[10px] text-gray-500 block mb-0.5 text-center font-medium">หลุม 3</label>
                         <input type="number" id="money3" value="435" inputmode="numeric" class="w-full p-2 border border-gray-200 rounded-lg text-center font-bold text-yellow-600 text-base focus:outline-yellow-500 bg-gray-50">
                     </div>
                 </div>
@@ -103,7 +103,7 @@
                     </div>
                     <div>
                         <div id="remainingPoints" class="text-xl font-bold text-emerald-600 bg-emerald-50 inline-block px-5 py-2 rounded-2xl border border-emerald-100 shadow-sm">
-                            อีก 0 แต้ม จะถึงหลุมถัดไป
+                            อีก 0 เหรียญ จะถึงหลุมถัดไป
                         </div>
                     </div>
                 </div>
