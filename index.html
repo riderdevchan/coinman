@@ -28,18 +28,19 @@
         <!-- ส่วนเนื้อหาหลัก -->
         <div class="px-5 py-3 flex-1 flex flex-col space-y-2 overflow-y-auto">
             
-            <!-- ตั้งค่าเกณฑ์ประจำวัน -->
+            <!-- ตั้งค่าเกณฑ์เงินประจำวัน -->
             <div class="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm flex-none">
                 <h2 class="text-xs font-semibold text-yellow-800 mb-2 flex items-center justify-between">
-                    ⚙️ ตั้งค่าเกณฑ์ประจำวัน
+                    ⚙️ ตั้งค่าเกณฑ์เงินประจำวัน
+                    <!-- เพิ่มคำสั่ง multiple เพื่อให้เลือก 2 รูปพร้อมกันได้ -->
+                    <button onclick="document.getElementById('ocrInputAll').click()" class="bg-blue-500 text-white px-2 py-0.5 rounded text-[10px] font-bold shadow-sm active:scale-95">📸 สแกนจากรูป</button>
+                    <input type="file" id="ocrInputAll" accept="image/*" multiple class="hidden" onchange="processOCRMultiple(event)">
                 </h2>
                 <div id="ocrStatus" class="text-[10px] text-blue-600 mb-2 hidden text-center italic">กำลังสแกนรูปภาพ... โปรดรอสักครู่</div>
                 
-                <!-- ชุดที่ 1: ตั้งค่าเกณฑ์จำนวนเหรียญ + แยกปุ่มสแกนเฉพาะรอบ -->
-                <div class="flex justify-between items-center mb-1">
-                    <span class="text-[11px] font-semibold text-amber-800">📊 เกณฑ์จำนวนเหรียญ </span>
-                    <button onclick="document.getElementById('ocrInputTarget').click()" class="bg-amber-600 text-white px-2 py-0.5 rounded text-[10px] font-bold shadow-sm active:scale-95">📸 สแกนเกณฑ์หลุม</button>
-                    <input type="file" id="ocrInputTarget" accept="image/*" class="hidden" onchange="processOCR(event, 'target')">
+                <!-- ชุดที่ 1: ตั้งค่าเกณฑ์จำนวนเหรียญ (หลุม) -->
+                <div class="mb-1">
+                    <span class="text-[11px] font-semibold text-amber-800">📊 เกณฑ์จำนวนเหรียญ</span>
                 </div>
                 <div class="grid grid-cols-3 gap-2 mb-3">
                     <div>
@@ -56,11 +57,9 @@
                     </div>
                 </div>
 
-                <!-- ชุดที่ 2: ตั้งค่าเกณฑ์จำนวนเงิน + แยกปุ่มสแกนเฉพาะเงิน -->
-                <div class="flex justify-between items-center mb-1 border-t border-gray-100 pt-2.5">
+                <!-- ชุดที่ 2: ตั้งค่าเกณฑ์จำนวนเงิน -->
+                <div class="mb-1 border-t border-gray-100 pt-2.5">
                     <span class="text-[11px] font-semibold text-blue-800">💰 เกณฑ์จำนวนเงิน (บาท)</span>
-                    <button onclick="document.getElementById('ocrInputMoney').click()" class="bg-blue-500 text-white px-2 py-0.5 rounded text-[10px] font-bold shadow-sm active:scale-95">💵 สแกนเกณฑ์เงิน</button>
-                    <input type="file" id="ocrInputMoney" accept="image/*" class="hidden" onchange="processOCR(event, 'money')">
                 </div>
                 <div class="grid grid-cols-3 gap-2">
                     <div>
@@ -136,41 +135,57 @@
     </div>
 
     <script>
-        // ฟังก์ชัน OCR ปรับปรุงใหม่แยกตามประเภทปุ่มสแกนที่กด
-        async function processOCR(event, type) {
-            const file = event.target.files[0];
-            if (!file) return;
+        // ฟังก์ชัน OCR ตัวใหม่ รองรับการส่งไฟล์เข้ามาพร้อมกันหลายรูป
+        async function processOCRMultiple(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
 
             const status = document.getElementById('ocrStatus');
             status.classList.remove('hidden');
 
+            let updatedTarget = false;
+            let updatedMoney = false;
+
             try {
-                const { data: { text } } = await Tesseract.recognize(file, 'eng');
-                const numbers = text.match(/\d{2,4}/g);
-                
-                if (numbers && numbers.length >= 3) {
-                    if (type === 'target') {
-                        // สแกนเข้าเฉพาะ 3 ช่องบน (เกณฑ์จำนวนรอบ/หลุม)
-                        document.getElementById('target1').value = numbers[0];
-                        document.getElementById('target2').value = numbers[1];
-                        document.getElementById('target3').value = numbers[2];
-                        alert('✅ อัปเดต "เกณฑ์จำนวนรอบ" 3 ช่องบนสำเร็จครับ');
-                    } else if (type === 'money') {
-                        // สแกนเข้าเฉพาะ 3 ช่องล่าง (เกณฑ์จำนวนเงิน)
-                        document.getElementById('money1').value = numbers[0];
-                        document.getElementById('money2').value = numbers[1];
-                        document.getElementById('money3').value = numbers[2];
-                        alert('✅ อัปเดต "เกณฑ์จำนวนเงิน" 3 ช่องล่างสำเร็จครับ');
+                // วนลูปสแกนรูปตามลำดับ (สูงสุด 2 รูป)
+                for (let i = 0; i < Math.min(files.length, 2); i++) {
+                    status.innerText = `กำลังสแกนรูปภาพใบที่ ${i + 1}/${Math.min(files.length, 2)}...`;
+                    
+                    const { data: { text } } = await Tesseract.recognize(files[i], 'eng');
+                    const numbers = text.match(/\d{2,4}/g);
+
+                    if (numbers && numbers.length >= 3) {
+                        if (i === 0) {
+                            // รูปแรกเอาเข้าช่องเกณฑ์จำนวนเหรียญ (หลุม 1, 2, 3)
+                            document.getElementById('target1').value = numbers[0];
+                            document.getElementById('target2').value = numbers[1];
+                            document.getElementById('target3').value = numbers[2];
+                            updatedTarget = true;
+                        } else if (i === 1) {
+                            // รูปสองเอาเข้าช่องเกณฑ์เงิน (เงิน 1, 2, 3)
+                            document.getElementById('money1').value = numbers[0];
+                            document.getElementById('money2').value = numbers[1];
+                            document.getElementById('money3').value = numbers[2];
+                            updatedMoney = true;
+                        }
                     }
-                    updateSettings();
-                } else {
-                    alert('⚠️ ไม่พบตัวเลขที่ชัดเจนในรูปภาพ โปรดลองรูปภาพอื่นที่ชัดกว่านี้ครับ');
                 }
+
+                // สรุปแจ้งเตือนหลังจากประมวลผลเสร็จสิ้น
+                if (updatedTarget && updatedMoney) {
+                    alert('✅ สแกนสำเร็จครบถ้วน: อัปเดตทั้งเกณฑ์หลุม และเกณฑ์เงินเรียบร้อยครับ!');
+                } else if (updatedTarget) {
+                    alert('✅ สแกนรูปแรกสำเร็จ: อัปเดตเกณฑ์หลุมแถวบนเรียบร้อย (หากต้องการอัปเดตเงิน อย่าลืมเลือกรูปมาพร้อมกัน 2 ใบนะครับ)');
+                } else {
+                    alert('⚠️ ไม่พบตัวเลขเป้าหมายที่ชัดเจนในรูปภาพครับ โปรดลองใหม่อีกครั้ง');
+                }
+                
+                updateSettings();
             } catch (err) {
                 alert('เกิดข้อผิดพลาดในการประมวลผลรูปภาพ');
             } finally {
                 status.classList.add('hidden');
-                event.target.value = ''; // เคลียร์ค่า input ให้สามารถอัปโหลดรูปซ้ำได้
+                event.target.value = ''; // ล้างค่า input ให้กดเลือกใหม่ได้
             }
         }
 
