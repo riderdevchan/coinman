@@ -38,7 +38,7 @@
                 <!-- ชุดที่ 1: ตั้งค่าเกณฑ์จำนวนเหรียญ + แยกปุ่มสแกนเฉพาะรอบ -->
                 <div class="flex justify-between items-center mb-1">
                     <span class="text-[11px] font-semibold text-amber-800">📊 เกณฑ์จำนวนเหรียญ </span>
-                    <button onclick="document.getElementById('ocrInputTarget').click()" class="bg-amber-600 text-white px-2 py-0.5 rounded text-[10px] font-bold shadow-sm active:scale-95">📸 สแกนเกณฑ์รอบ</button>
+                    <button onclick="document.getElementById('ocrInputTarget').click()" class="bg-amber-600 text-white px-2 py-0.5 rounded text-[10px] font-bold shadow-sm active:scale-95">📸 สแกนเกณฑ์หลุม</button>
                     <input type="file" id="ocrInputTarget" accept="image/*" class="hidden" onchange="processOCR(event, 'target')">
                 </div>
                 <div class="grid grid-cols-3 gap-2 mb-3">
@@ -265,17 +265,17 @@
                 badge.className = "inline-block px-6 py-2 rounded-full text-xl font-bold bg-gray-400 text-white shadow-sm";
                 badge.innerText = `🥈 หลุม 2 เงินสะสม: ${m2} บาท`;
                 remText.className = "text-xl font-bold text-amber-600 bg-amber-50 inline-block px-5 py-2.5 rounded-2xl border border-amber-100 shadow-sm";
-                remText.innerText = `อีก 🪙 ${t3 - coins} แต้ม จะถึง หลุม 3 (${m3} บ.)`;
+                remText.innerText = `อีก 🪙 ${t3 - coins} เหรียญ จะถึง หลุม 3 (${m3} บ.)`;
             } else if (coins >= t1) {
                 badge.className = "inline-block px-6 py-2 rounded-full text-xl font-bold bg-amber-600 text-white shadow-sm";
                 badge.innerText = `🥉 หลุม 1 เงินสะสม: ${m1} บาท`;
                 remText.className = "text-xl font-bold text-gray-600 bg-gray-50 inline-block px-5 py-2.5 rounded-2xl border border-gray-100 shadow-sm";
-                remText.innerText = `อีก 🪙 ${t2 - coins} แต้ม จะถึง หลุม 2 (${m2} บ.)`;
+                remText.innerText = `อีก 🪙 ${t2 - coins} เหรียญ จะถึง หลุม 2 (${m2} บ.)`;
             } else {
                 badge.className = "inline-block px-6 py-2 rounded-full text-xl font-bold bg-gray-200 text-gray-700 shadow-sm";
                 badge.innerText = "⚪ กำลังเดินทางไปหลุมแรก";
                 remText.className = "text-xl font-bold text-emerald-600 bg-emerald-50 inline-block px-5 py-2.5 rounded-2xl border border-emerald-100 shadow-sm";
-                remText.innerText = `อีก 🪙 ${t1 - coins} แต้ม จะถึง หลุม 1 (${m1} บ.)`;
+                remText.innerText = `อีก 🪙 ${t1 - coins} เหรียญ จะถึง หลุม 1 (${m1} บ.)`;
             }
         }
         updateUI();
