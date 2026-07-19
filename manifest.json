@@ -1,17 +1,21 @@
 {
-  "name": "Coin Man",
   "short_name": "Coin Man",
-  "start_url": "index.html",
-  "display": "standalone",
-  "background_color": "#f9fafb",
-  "theme_color": "#f59e0b",
-  "orientation": "portrait",
+  "name": "Coin Man - Rider Tracker",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/217/217853.png",
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
-  ]
+  ],
+  "start_url": "./index.html",
+  "background_color": "#F3F4F6",
+  "theme_color": "#F59E0B",
+  "display": "standalone",
+  "orientation": "portrait"
 }
