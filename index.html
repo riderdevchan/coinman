@@ -40,7 +40,7 @@
         <!-- ส่วนเนื้อหาหลัก -->
         <div class="px-5 py-3 flex-1 flex flex-col space-y-2 overflow-y-auto">
             
-            <!-- การ์ดตั้งค่าเกณฑ์ประจำวัน + โปรไฟล์ (ค่าเดิมสเกลเดิม) -->
+            <!-- การ์ดตั้งค่าเกณฑ์ประจำวัน + โปรไฟล์ -->
             <div class="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm flex-none space-y-3">
                 
                 <!-- แถวที่ 1: โปรไฟล์ผู้ใช้ -->
@@ -71,17 +71,23 @@
                     </div>
                 </div>
 
-                <!-- แถวที่ 2: ตั้งค่าเกณฑ์ประจำวัน -->
+                <!-- แถวที่ 2: ตั้งค่าเกณฑ์ประจำวัน + ปุ่มแชร์สรุป + ปุ่มสถิติ (แทรกกลาง) + ปุ่มรีเซ็ต -->
                 <div class="flex items-center justify-between pt-1">
                     <h2 class="text-xs font-semibold text-yellow-800 flex items-center gap-1">
                         ⚙️ ตั้งค่าเกณฑ์ประจำวัน
                     </h2>
-                    <div class="flex items-center gap-1.5">
-                        <button id="btnShare" onclick="generateVectorImage()" class="bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-700 text-[10px] px-2.5 py-1 rounded-lg font-bold transition active:scale-95 shadow-sm flex items-center gap-1">
-                            📸 แชร์สรุป
+                    <div class="flex items-center gap-1">
+                        <!-- ปุ่มแชร์สรุป -->
+                        <button id="btnShare" onclick="generateVectorImage()" class="bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-700 text-[9px] px-2 py-1 rounded-lg font-bold transition active:scale-95 shadow-sm flex items-center gap-0.5">
+                            📸 แชร์
                         </button>
-                        <button onclick="resetCoins()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-[10px] px-2.5 py-1 rounded-lg font-semibold transition active:scale-98 shadow-sm">
-                            🔄 รีเซ็ต 0
+                        <!-- ปุ่มสถิติ (วางไว้ตรงกลาง) -->
+                        <button onclick="openDailyStatsModal()" class="bg-blue-600 hover:bg-blue-700 text-white border border-blue-700 text-[9px] px-2 py-1 rounded-lg font-bold transition active:scale-95 shadow-sm flex items-center gap-0.5">
+                            📊 สถิติ
+                        </button>
+                        <!-- ปุ่มรีเซ็ต -->
+                        <button onclick="resetCoins()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-[9px] px-2 py-1 rounded-lg font-semibold transition active:scale-98 shadow-sm">
+                            🔄 รีเซ็ต
                         </button>
                     </div>
                 </div>
@@ -130,7 +136,6 @@
             <!-- กล่องการ์ดครอบส่วนแสดงผลหลัก -->
             <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex-none space-y-4">
                 
-                <!-- 🎯 จุดปรับแก้ที่ 1: ย่อขนาดเฉพาะตัวเลขยศตรงนี้ลง 1 ระดับ (6xl -> 4xl) -->
                 <div class="grid grid-cols-2 gap-4 border-b border-gray-100 pb-3">
                     <div class="space-y-0.5 text-center border-r border-gray-100">
                         <p class="text-gray-400 text-xs uppercase tracking-wider font-semibold">ยอดออเดอร์สะสม</p>
@@ -159,7 +164,6 @@
                     </div>
                 </div>
 
-                <!-- 🎯 จุดปรับแก้ที่ 2: ปรับลดระยะกล่องกรอกข้อมูลความสูงลงเล็กน้อย (p-3.5 -> p-2) -->
                 <div class="w-full pt-1">
                     <label id="inputLabel" class="text-[11px] font-semibold text-blue-500 block mb-1 text-left pl-1 transition-colors duration-200">📥 ขั้นที่ 1: ใส่จำนวนออเดอร์ (หรือกด Enter เพื่อข้าม):</label>
                     <input type="number" id="inputCoins" placeholder="ใส่จำนวนออเดอร์... (ข้ามได้)" inputmode="numeric" 
@@ -183,6 +187,44 @@
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    <!-- Modal ป๊อปอัพแสดงผลสถิติประจำวัน -->
+    <div id="statsModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden z-50 flex flex-col items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-5 w-full max-w-xs shadow-2xl space-y-4 text-center">
+            <div class="border-b border-gray-100 pb-2">
+                <h3 class="font-bold text-gray-800 text-base flex items-center justify-center gap-1">📊 สรุปสถิติประจำวัน</h3>
+                <p id="statsDateText" class="text-xs text-amber-600 font-semibold mt-0.5">📅 วันนี้</p>
+            </div>
+
+            <div class="space-y-2 text-left bg-gray-50 p-3 rounded-2xl border border-gray-100 text-xs">
+                <div class="flex justify-between items-center">
+                    <span class="text-gray-500">📦 ออเดอร์ที่เก็บได้:</span>
+                    <span id="statOrders" class="font-extrabold text-blue-600 text-sm">0 งาน</span>
+                </div>
+                <div class="flex justify-between items-center border-t border-gray-200/60 pt-1.5">
+                    <span class="text-gray-500">🪙 เหรียญที่ได้สะสม:</span>
+                    <span id="statCoins" class="font-extrabold text-cyan-600 text-sm">0 เหรียญ</span>
+                </div>
+                <div class="flex justify-between items-center border-t border-gray-200/60 pt-1.5">
+                    <span class="text-gray-500">🏆 พิชิตได้:</span>
+                    <span id="statHoles" class="font-extrabold text-amber-600 text-sm">ยังไม่ถึงหลุมแรก</span>
+                </div>
+                <div class="flex justify-between items-center border-t border-gray-200/60 pt-1.5">
+                    <span class="text-gray-500">💰 ยอดเงินรางวัลรวม:</span>
+                    <span id="statMoney" class="font-extrabold text-emerald-600 text-sm">0 บาท</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 pt-1">
+                <button onclick="clearDailyStatsRecord()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold text-xs py-2.5 rounded-xl transition shadow-xs">
+                    🗑️ ลบเรคคอร์ด
+                </button>
+                <button onclick="document.getElementById('statsModal').classList.add('hidden')" class="bg-gray-800 hover:bg-gray-900 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-md">
+                    ปิดหน้าต่าง
+                </button>
+            </div>
         </div>
     </div>
 
@@ -249,6 +291,49 @@
     <canvas id="hiddenCanvas" class="hidden"></canvas>
 
     <script>
+        // --- ระบบสถิติประจำวัน ---
+        function openDailyStatsModal() {
+            const now = new Date();
+            const thaiMonths = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+            document.getElementById('statsDateText').innerText = `📅 ${now.getDate()} ${thaiMonths[now.getMonth()]} ${now.getFullYear()}`;
+
+            document.getElementById('statOrders').innerText = `${orders} งาน`;
+            document.getElementById('statCoins').innerText = `${coins} เหรียญ`;
+
+            let holeText = "ยังไม่ถึงหลุมแรก";
+            let moneyTotal = 0;
+
+            if (coins >= t3) {
+                holeText = "🏆 หลุม 3 (สำเร็จสูงสุด!)";
+                moneyTotal = m3;
+            } else if (coins >= t2) {
+                holeText = "🥈 หลุม 2";
+                moneyTotal = m2;
+            } else if (coins >= t1) {
+                holeText = "🥉 หลุม 1";
+                moneyTotal = m1;
+            }
+
+            document.getElementById('statHoles').innerText = holeText;
+            document.getElementById('statMoney').innerText = `${moneyTotal} บาท`;
+
+            document.getElementById('statsModal').classList.remove('hidden');
+        }
+
+        function clearDailyStatsRecord() {
+            if (confirm('คุณต้องการลบเรคคอร์ดสถิติประจำวันนี้ทั้งหมดใช่หรือไม่? (ยอดสะสมจะกลับเป็น 0)')) {
+                coins = 0;
+                orders = 0;
+                localStorage.setItem('savedCoins', coins);
+                localStorage.setItem('savedOrders', orders);
+                currentInputMode = 'order';
+                switchInputDesign();
+                updateUI();
+                document.getElementById('statsModal').classList.add('hidden');
+                alert('ลบเรคคอร์ดสถิติเรียบร้อยแล้ว!');
+            }
+        }
+
         // --- 1. ระบบจัดการยศ 5 ระดับ ---
         const RANKS = ['BRONZE', 'SILVER', 'GOLD', 'MASTER', 'LEGEND'];
         const rankStyles = {
@@ -304,14 +389,13 @@
         // --- 3. ระบบสร้างภาพสรุป SVG Vector 100% ---
         function generateVectorImage() {
             const btn = document.getElementById('btnShare');
-            btn.innerText = "⏳ กำลังสร้างรูป...";
+            btn.innerText = "⏳...";
 
             setTimeout(() => {
                 const badgeText = document.getElementById('levelBadge').innerText || "⚪ กำลังเริ่ม";
                 const rankStyle = rankStyles[p_rank];
                 const avatarSrc = document.getElementById('userAvatar').src;
                 
-                // คำนวณวันที่และเวลาปัจจุบัน
                 const now = new Date();
                 const thaiMonths = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
                 const dateStr = `📅 ${now.getDate()} ${thaiMonths[now.getMonth()]} ${now.getFullYear()}`;
@@ -319,7 +403,6 @@
                 const minutes = String(now.getMinutes()).padStart(2, '0');
                 const timeStr = `⏰ ${hours}:${minutes} น.`;
 
-                // คำนวณเปอร์เซ็นต์ Progress Bar
                 let p = 0;
                 if (coins <= t1) p = (coins / t1) * 33.33;
                 else if (coins <= t2) p = 33.33 + ((coins - t1) / (t2 - t1)) * 33.33;
@@ -327,7 +410,6 @@
                 else p = 100;
                 const barWidth = Math.min((p / 100) * 520, 520);
 
-                // ข้อความระยะหลุมถัดไป
                 let remLine1 = "", remLine2 = "", remColor = "#059669";
                 if (coins >= t3) {
                     remLine1 = "🎉 สำเร็จเป้าหมายสูงสุดแล้ว!";
@@ -346,7 +428,6 @@
                     remColor = "#059669";
                 }
 
-                // สร้าง SVG แม่แบบ
                 const svgString = `
                 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="600" height="880" viewBox="0 0 600 880">
                     <style>
@@ -368,19 +449,15 @@
                     <rect x="20" y="20" width="560" height="65" fill="url(#headerGrad)" rx="16"/>
                     <text x="300" y="60" fill="#FFFFFF" font-size="24" font-weight="700" text-anchor="middle">🪙 ระบบสะสมเหรียญ</text>
                     
-                    <!-- การ์ดเกณฑ์ -->
                     <rect x="20" y="100" width="560" height="280" fill="#FFFFFF" stroke="#F3F4F6" stroke-width="2" rx="20"/>
                     
-                    <!-- รูปโปรไฟล์ -->
                     <image href="${avatarSrc}" x="40" y="115" width="50" height="50" clip-path="url(#avatarClip)" preserveAspectRatio="xMidYMid slice" />
                     <circle cx="65" cy="140" r="25" fill="none" stroke="#F59E0B" stroke-width="2"/>
 
-                    <!-- ชื่อผู้ใช้ & Badge ยศ -->
                     <text x="100" y="138" fill="#1F2937" font-size="18" font-weight="700">${userName}</text>
                     <rect x="100" y="148" width="115" height="20" fill="${rankStyle.svgFill}" rx="10"/>
                     <text x="157" y="162" fill="${rankStyle.svgText}" font-size="10" font-weight="700" text-anchor="middle">${rankStyle.name}</text>
                     
-                    <!-- วันที่ และ เวลา ขวาบน -->
                     <text x="560" y="138" fill="#4B5563" font-size="12" font-weight="600" text-anchor="end">${dateStr}</text>
                     <text x="560" y="158" fill="#059669" font-size="12" font-weight="700" text-anchor="end">${timeStr}</text>
 
@@ -462,7 +539,7 @@
                     URL.revokeObjectURL(url);
                     
                     const dataUrl = canvas.toDataURL('image/png');
-                    btn.innerText = "📸 แชร์สรุป";
+                    btn.innerText = "📸 แชร์";
 
                     document.getElementById('resultImage').src = dataUrl;
                     document.getElementById('downloadBtn').href = dataUrl;
