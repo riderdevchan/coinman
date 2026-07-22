@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
+    <title>Coin Man</title>
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- ไลบรารีสำหรับครอปรูปภาพทรงกลม -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+    <style>
+        body { font-family: 'Kanit', sans-serif; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+        .cropper-view-box, .cropper-face { border-radius: 50%; }
+    </style>
+</head>
+<body class="bg-gray-50 h-screen flex flex-col justify-between">
+
+    <div class="w-full h-full flex flex-col bg-gray-50">
+        
+        <!-- ส่วนหัว (Header) -->
+        <div class="bg-gradient-to-r from-yellow-500 to-amber-600 text-white shadow-md flex-none">
+            <div class="py-3 text-center">
+                <h1 class="text-2xl font-bold tracking-wide flex items-center justify-center gap-1">🪙 Coin Man</h1>
+            </div>
+            <div id="installAppArea" class="hidden bg-amber-700/60 px-4 py-2 text-xs flex justify-between items-center border-t border-amber-400/30 animate-pulse">
+                <span>📲 ติดตั้ง Coin Man ลงหน้าจอมือถือของคุณ</span>
+                <button onclick="triggerInstall()" class="bg-white text-amber-700 px-3 py-1 rounded-md font-bold shadow-md active:scale-95">ติดตั้งแอป</button>
+            </div>
+        </div>
+
+        <!-- ส่วนเนื้อหาหลัก -->
+        <div class="px-5 py-3 flex-1 flex flex-col space-y-2 overflow-y-auto">
+            
+            <!-- การ์ดตั้งค่าเกณฑ์ประจำวัน + โปรไฟล์ -->
+            <div class="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm flex-none space-y-3">
+                
+                <!-- แถวที่ 1: โปรไฟล์ผู้ใช้ + ปุ่มสแกนจากรูป -->
+                <div class="flex items-center justify-between pb-2 border-b border-gray-100">
+                    <div class="flex items-center gap-2.5">
+                        <div class="relative cursor-pointer group flex-none" onclick="openAvatarModal()">
+                            <img id="userAvatar" src="https://api.dicebear.com/7.x/bottts/svg?seed=Rider1" class="w-11 h-11 rounded-full border-2 border-amber-500 object-cover bg-amber-50 shadow-sm">
+                            <span class="absolute -bottom-1 -right-1 bg-amber-500 text-white p-0.5 rounded-full text-[8px]">✏️</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <input type="text" id="userNameInput" value="Riderdev_Chan" onchange="saveUserProfile()" class="font-bold text-sm text-gray-800 bg-transparent focus:bg-gray-50 rounded px-1 -ml-1 focus:outline-amber-500 w-36 truncate">
+                            <span class="inline-block bg-purple-100 text-purple-700 text-[9px] font-bold px-2 py-0.5 rounded-full w-max mt-0.5">✨ RIDER LEGEND</span>
+                        </div>
+                    </div>
+                    <div>
+                        <button onclick="document.getElementById('ocrInputAll').click()" class="bg-blue-500 hover:bg-blue-600 text-white px-2.5 py-1.5 rounded-xl text-xs font-bold shadow-sm active:scale-95 flex items-center gap-1">
+                            📸 สแกนจากรูป
+                        </button>
+                        <input type="file" id="ocrInputAll" accept="image/*" multiple class="hidden" onchange="processOCRMultiple(event)">
+                        <input type="file" id="customAvatarInput" accept="image/*" class="hidden" onchange="onFileSelected(event)">
+                    </div>
+                </div>
+
+                <!-- แถวที่ 2: ตั้งค่าเกณฑ์ประจำวัน + ปุ่มแชร์ และ ปุ่มรีเซ็ต -->
+                <div class="flex items-center justify-between pt-1">
+                    <h2 class="text-xs font-semibold text-yellow-800 flex items-center gap-1">
+                        ⚙️ ตั้งค่าเกณฑ์ประจำวัน
+                    </h2>
+                    <div class="flex items-center gap-1.5">
+                        <button onclick="shareScreenshot()" class="bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-700 text-[10px] px-2.5 py-1 rounded-lg font-bold transition active:scale-95 shadow-sm flex items-center gap-1">
+                            📸 แชร์สรุป
+                        </button>
+                        <button onclick="resetCoins()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-[10px] px-2 py-1 rounded-lg font-semibold transition active:scale-98 shadow-sm">
+                            🔄 รีเซ็ต 0
+                        </button>
+                    </div>
+                </div>
+
+                <div id="ocrStatus" class="text-[10px] text-blue-600 mb-1 hidden text-center italic">กำลังสแกนรูปภาพ... โปรดรอสักครู่</div>
+                
+                <!-- ชุดที่ 1: เกณฑ์จำนวนเหรียญ -->
+                <div>
+                    <span class="text-[11px] font-semibold text-amber-800 block mb-1">📊 เกณฑ์จำนวนเหรียญ</span>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="text-[10px] text-gray-500 block mb-0.5 text-center font-medium">หลุม 1</label>
+                            <input type="number" id="target1" value="10" inputmode="numeric" onchange="autoSaveSettings()" class="w-full p-2 border border-gray-200 rounded-lg text-center font-bold text-amber-700 text-base focus:outline-yellow-500 bg-gray-50">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-gray-500 block mb-0.5 text-center font-medium">หลุม 2</label>
+                            <input type="number" id="target2" value="30" inputmode="numeric" onchange="autoSaveSettings()" class="w-full p-2 border border-gray-200 rounded-lg text-center font-bold text-gray-500 text-base focus:outline-yellow-500 bg-gray-50">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-gray-500 block mb-0.5 text-center font-medium">หลุม 3</label>
+                            <input type="number" id="target3" value="50" inputmode="numeric" onchange="autoSaveSettings()" class="w-full p-2 border border-gray-200 rounded-lg text-center font-bold text-yellow-600 text-base focus:outline-yellow-500 bg-gray-50">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ชุดที่ 2: เกณฑ์จำนวนเงิน -->
+                <div class="border-t border-gray-100 pt-2">
+                    <span class="text-[11px] font-semibold text-blue-800 block mb-1">💰 เกณฑ์จำนวนเงิน (บาท)</span>
+                    <div class="grid grid-cols-3 gap-2">
+                        <div>
+                            <label class="text-[10px] text-gray-500 block mb-0.5 text-center font-medium">หลุม 1</label>
+                            <input type="number" id="money1" value="300" inputmode="numeric" onchange="autoSaveSettings()" class="w-full p-2 border border-gray-200 rounded-lg text-center font-bold text-amber-700 text-base focus:outline-yellow-500 bg-gray-50">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-gray-500 block mb-0.5 text-center font-medium">หลุม 2</label>
+                            <input type="number" id="money2" value="395" inputmode="numeric" onchange="autoSaveSettings()" class="w-full p-2 border border-gray-200 rounded-lg text-center font-bold text-gray-500 text-base focus:outline-yellow-500 bg-gray-50">
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-gray-500 block mb-0.5 text-center font-medium">หลุม 3</label>
+                            <input type="number" id="money3" value="435" inputmode="numeric" onchange="autoSaveSettings()" class="w-full p-2 border border-gray-200 rounded-lg text-center font-bold text-yellow-600 text-base focus:outline-yellow-500 bg-gray-50">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- กล่องการ์ดครอบส่วนแสดงผลหลัก -->
+            <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex-none space-y-4">
+                <div class="grid grid-cols-2 gap-4 border-b border-gray-100 pb-3">
+                    <div class="space-y-0.5 text-center border-r border-gray-100">
+                        <p class="text-gray-400 text-xs uppercase tracking-wider font-semibold">ยอดออเดอร์สะสม</p>
+                        <div class="text-6xl font-extrabold text-blue-600 flex justify-center items-center gap-2">
+                            <span id="orderCount">0</span>
+                            <span class="text-4xl">📦</span>
+                        </div>
+                    </div>
+                    <div class="space-y-0.5 text-center">
+                        <p class="text-gray-400 text-xs uppercase tracking-wider font-semibold">ยอดเหรียญสะสม</p>
+                        <div class="text-6xl font-extrabold text-cyan-600 flex justify-center items-center gap-2">
+                            <span id="coinCount">0</span>
+                            <span class="text-4xl">🪙</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-3 text-center">
+                    <div>
+                        <span id="levelBadge" class="inline-block px-5 py-2 rounded-full text-xl font-bold bg-gray-200 text-gray-700 shadow-sm">⚪ กำลังเริ่ม</span>
+                    </div>
+                    <div>
+                        <div id="remainingPoints" class="text-xl font-bold text-emerald-600 bg-emerald-50 flex flex-col items-center justify-center px-5 py-2.5 rounded-2xl border border-emerald-100 shadow-sm mx-auto min-w-[80%] text-center">
+                            อีก 0 เหรียญ จะถึงหลุมถัดไป
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-full pt-1">
+                    <label id="inputLabel" class="text-[11px] font-semibold text-blue-500 block mb-1 text-left pl-1 transition-colors duration-200">📥 ขั้นที่ 1: ใส่จำนวนออเดอร์ (หรือกด Enter เพื่อข้าม):</label>
+                    <input type="number" id="inputCoins" placeholder="ใส่จำนวนออเดอร์... (ข้ามได้)" inputmode="numeric" 
+                           onkeydown="if(event.key==='Enter') handleCombinedInput()" 
+                           class="w-full p-3.5 border-2 border-blue-500 rounded-xl text-center font-bold text-2xl text-gray-800 focus:outline-none bg-blue-50/30 shadow-inner transition-all duration-200">
+                </div>
+
+                <div class="space-y-1 pt-2">
+                    <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden relative shadow-inner">
+                        <div id="progressBar" class="bg-gradient-to-r from-amber-500 via-gray-400 to-yellow-500 h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                    <div class="flex justify-between text-[10px] text-gray-400 font-bold px-1">
+                        <span>0</span>
+                        <span id="lblT1" class="text-amber-700">10</span>
+                        <span id="lblT2" class="text-gray-500">30</span>
+                        <span id="lblT3" class="text-yellow-600">50+</span>
+                    </div>
+                    <div class="text-right pt-0.5">
+                        <span class="text-[10px] text-slate-400 font-medium italic select-none">#RiderdevChan</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal เลือกอวาตาร์ -->
+    <div id="avatarModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-5 w-full max-w-xs shadow-2xl space-y-4 text-center">
+            <h3 class="font-bold text-gray-800 text-base">🖼️ เลือกรูปโปรไฟล์อวาตาร์</h3>
+            
+            <button onclick="document.getElementById('customAvatarInput').click()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-sm active:scale-95 flex items-center justify-center gap-1.5">
+                📁 เลือกรูปภาพจากแกลลอรี่มือถือ
+            </button>
+            <div class="text-[10px] text-gray-400">หรือเลือกอวาตาร์ที่เตรียมไว้ให้ 12 แบบ:</div>
+
+            <div class="grid grid-cols-4 gap-2.5 max-h-48 overflow-y-auto p-1" id="avatarGrid"></div>
+
+            <button onclick="closeAvatarModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-semibold text-xs py-2 rounded-xl transition">
+                ยกเลิก
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal โฟกัสและครอปรูปทรงกลม -->
+    <div id="cropModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden z-50 flex flex-col items-center justify-between p-4">
+        <div class="text-white text-center pt-2">
+            <h3 class="font-bold text-base">🔍 ปรับตำแหน่งโฟกัสรูปโปรไฟล์</h3>
+            <p class="text-[11px] text-gray-300">ใช้นิ้วลากขยับรูป หรือย่อ-ขยาย ให้หน้าตรงกลางวงกลม</p>
+        </div>
+
+        <div class="w-full max-w-xs h-72 my-auto bg-black flex items-center justify-center overflow-hidden rounded-2xl">
+            <img id="cropImage" class="max-w-full">
+        </div>
+
+        <div class="w-full max-w-xs grid grid-cols-2 gap-3 pb-2">
+            <button onclick="closeCropModal()" class="bg-gray-700 hover:bg-gray-600 text-white font-semibold text-xs py-2.5 rounded-xl transition">
+                ยกเลิก
+            </button>
+            <button onclick="cropAndSave()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-md active:scale-95">
+                ✂️ ตกลง ใช้รูปนี้
+            </button>
+        </div>
+    </div>
+
+    <!-- Canvas ซ่อนสำหรับวาดการ์ดภาพสรุป -->
+    <canvas id="shareCanvas" class="hidden"></canvas>
+
+    <script>
+        // --- ระบบวาดภาพสรุป Canvas 2D แม่นยำ 100% ไม่เพี้ยน ไม่เบี้ยว ---
+        async function shareScreenshot() {
+            const canvas = document.getElementById('shareCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // กำหนดขนาดการ์ดภาพคมชัด HD (720 x 1280)
+            const W = 720;
+            const H = 1200;
+            canvas.width = W;
+            canvas.height = H;
+
+            // 1. พื้นหลังแอป
+            ctx.fillStyle = "#F9FAFB";
+            ctx.fillRect(0, 0, W, H);
+
+            // 2. ส่วนหัว (Header Bar)
+            const gradHeader = ctx.createLinearGradient(0, 0, W, 0);
+            gradHeader.addColorStop(0, '#F59E0B');
+            gradHeader.addColorStop(1, '#D97706');
+            ctx.fillStyle = gradHeader;
+            ctx.fillRect(0, 0, W, 90);
+
+            ctx.fillStyle = "#FFFFFF";
+            ctx.font = "bold 36px Kanit, sans-serif";
+            ctx.textAlign = "center";
+            ctx.fillText("🪙 Coin Man", W / 2, 58);
+
+            // 3. การ์ดโปรไฟล์และเกณฑ์ประจำวัน
+            drawRoundedRect(ctx, 30, 110, 660, 410, 24, "#FFFFFF", "#F3F4F6");
+
+            // วาดรูปอวาตาร์
+            const avatarImg = document.getElementById('userAvatar');
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(85, 165, 35, 0, Math.PI * 2);
+            ctx.clip();
+            try {
+                ctx.drawImage(avatarImg, 50, 130, 70, 70);
+            } catch (e) {
+                ctx.fillStyle = "#F59E0B";
+                ctx.fill();
+            }
+            ctx.restore();
+
+            // ขอบอวาตาร์
+            ctx.beginPath();
+            ctx.arc(85, 165, 35, 0, Math.PI * 2);
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = "#F59E0B";
+            ctx.stroke();
+
+            // ชื่อผู้ใช้
+            const userName = document.getElementById('userNameInput').value || "Riderdev_Chan";
+            ctx.textAlign = "left";
+            ctx.font = "bold 26px Kanit, sans-serif";
+            ctx.fillStyle = "#1F2937";
+            ctx.fillText(userName, 135, 160);
+
+            // Badge RIDER LEGEND
+            drawRoundedRect(ctx, 135, 175, 160, 26, 13, "#F3E8FF", "transparent");
+            ctx.font = "bold 14px Kanit, sans-serif";
+            ctx.fillStyle = "#7E22CE";
+            ctx.fillText("✨ RIDER LEGEND", 147, 193);
+
+            // เส้นแบ่งโปรไฟล์
+            ctx.strokeStyle = "#F3F4F6";
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(50, 215);
+            ctx.lineTo(670, 215);
+            ctx.stroke();
+
+            // หัวข้อเกณฑ์ประจำวัน
+            ctx.font = "bold 20px Kanit, sans-serif";
+            ctx.fillStyle = "#92400E";
+            ctx.fillText("⚙️ ตั้งค่าเกณฑ์ประจำวัน", 50, 248);
+
+            // เกณฑ์จำนวนเหรียญ
+            ctx.font = "bold 18px Kanit, sans-serif";
+            ctx.fillStyle = "#92400E";
+            ctx.fillText("📊 เกณฑ์จำนวนเหรียญ", 50, 285);
+
+            drawTargetBoxes(ctx, 50, 300, [t1, t2, t3], ["หลุม 1", "หลุม 2", "หลุม 3"], ["#B45309", "#6B7280", "#CA8A04"]);
+
+            // เส้นแบ่งชุดเกณฑ์
+            ctx.beginPath();
+            ctx.moveTo(50, 395);
+            ctx.lineTo(670, 395);
+            ctx.stroke();
+
+            // เกณฑ์จำนวนเงิน
+            ctx.font = "bold 18px Kanit, sans-serif";
+            ctx.fillStyle = "#1E40AF";
+            ctx.fillText("💰 เกณฑ์จำนวนเงิน (บาท)", 50, 425);
+
+            drawTargetBoxes(ctx, 50, 440, [m1, m2, m3], ["หลุม 1", "หลุม 2", "หลุม 3"], ["#B45309", "#6B7280", "#CA8A04"]);
+
+            // 4. การ์ดแสดงผลหลัก (ยอดสะสม)
+            drawRoundedRect(ctx, 30, 545, 660, 610, 24, "#FFFFFF", "#F3F4F6");
+
+            // ฝั่งซ้าย: ยอดออเดอร์สะสม
+            ctx.textAlign = "center";
+            ctx.font = "bold 18px Kanit, sans-serif";
+            ctx.fillStyle = "#9CA3AF";
+            ctx.fillText("ยอดออเดอร์สะสม", 195, 585);
+
+            ctx.font = "extrabold 72px Kanit, sans-serif";
+            ctx.fillStyle = "#2563EB";
+            ctx.fillText(`${orders}`, 155, 660);
+            ctx.font = "50px Kanit, sans-serif";
+            ctx.fillText("📦", 240, 655);
+
+            // เส้นกั้นกลาง
+            ctx.beginPath();
+            ctx.moveTo(360, 570);
+            ctx.lineTo(360, 670);
+            ctx.stroke();
+
+            // ฝั่งขวา: ยอดเหรียญสะสม
+            ctx.font = "bold 18px Kanit, sans-serif";
+            ctx.fillStyle = "#9CA3AF";
+            ctx.fillText("ยอดเหรียญสะสม", 525, 585);
+
+            ctx.font = "extrabold 72px Kanit, sans-serif";
+            ctx.fillStyle = "#0891B2";
+            ctx.fillText(`${coins}`, 485, 660);
+            ctx.font = "50px Kanit, sans-serif";
+            ctx.fillText("🪙", 570, 655);
+
+            // เส้นแบ่ง
+            ctx.beginPath();
+            ctx.moveTo(50, 685);
+            ctx.lineTo(670, 685);
+            ctx.stroke();
+
+            // Badge หลุมปัจจุบัน
+            const badgeText = document.getElementById('levelBadge').innerText;
+            drawRoundedRect(ctx, 160, 710, 400, 50, 25, "#E5E7EB", "transparent");
+            ctx.font = "bold 24px Kanit, sans-serif";
+            ctx.fillStyle = "#374151";
+            ctx.fillText(badgeText, 360, 744);
+
+            // กล่องข้อความบอกระยะทางไปหลุมถัดไป
+            drawRoundedRect(ctx, 60, 780, 600, 110, 24, "#ECFDF5", "#A7F3D0");
+            
+            ctx.font = "bold 28px Kanit, sans-serif";
+            ctx.fillStyle = "#059669";
+
+            if (coins >= t3) {
+                ctx.fillText("🎉 สำเร็จเป้าหมายสูงสุดแล้ว!", 360, 845);
+            } else if (coins >= t2) {
+                ctx.fillStyle = "#D97706";
+                ctx.fillText(`อีก 🪙 ${t3 - coins} เหรียญ ถึงหลุม 3`, 360, 825);
+                ctx.fillText(`(${m3} บ.)`, 360, 865);
+            } else if (coins >= t1) {
+                ctx.fillStyle = "#4B5563";
+                ctx.fillText(`อีก 🪙 ${t2 - coins} เหรียญ ถึงหลุม 2`, 360, 825);
+                ctx.fillText(`(${m2} บ.)`, 360, 865);
+            } else {
+                ctx.fillStyle = "#059669";
+                ctx.fillText(`อีก 🪙 ${t1 - coins} เหรียญ ถึงหลุม 1`, 360, 825);
+                ctx.fillText(`(${m1} บ.)`, 360, 865);
+            }
+
+            // Progress Bar
+            drawRoundedRect(ctx, 60, 920, 600, 20, 10, "#E5E7EB", "transparent");
+            let p = 0;
+            if (coins <= t1) p = (coins / t1) * 33.33;
+            else if (coins <= t2) p = 33.33 + ((coins - t1) / (t2 - t1)) * 33.33;
+            else if (coins <= t3) p = 66.66 + ((coins - t2) / (t3 - t2)) * 33.34;
+            else p = 100;
+            const barW = Math.min((p / 100) * 600, 600);
+            if (barW > 0) {
+                drawRoundedRect(ctx, 60, 920, barW, 20, 10, "#F59E0B", "transparent");
+            }
+
+            // ตัวเลขเกณฑ์ใต้ Progress Bar
+            ctx.font = "bold 16px Kanit, sans-serif";
+            ctx.fillStyle = "#9CA3AF";
+            ctx.textAlign = "left"; ctx.fillText("0", 60, 960);
+            ctx.textAlign = "center"; ctx.fillStyle = "#B45309"; ctx.fillText(`${t1}`, 260, 960);
+            ctx.textAlign = "center"; ctx.fillStyle = "#6B7280"; ctx.fillText(`${t2}`, 460, 960);
+            ctx.textAlign = "right"; ctx.fillStyle = "#CA8A04"; ctx.fillText(`${t3}+`, 660, 960);
+
+            // Hashtag ด้านล่าง
+            ctx.font = "italic 16px Kanit, sans-serif";
+            ctx.fillStyle = "#9CA3AF";
+            ctx.fillText("#RiderdevChan", 660, 1120);
+
+            // 5. ส่งไฟล์ภาพที่วาดเสร็จสมบูรณ์ไปแชร์ยังแอป LINE
+            canvas.toBlob(async (blob) => {
+                const file = new File([blob], 'coinman-summary.png', { type: 'image/png' });
+                if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                    await navigator.share({
+                        title: 'สรุปผลงาน Coin Man',
+                        text: '🪙 ยอดสรุปผลงานประจำวัน Coin Man ของฉัน',
+                        files: [file]
+                    });
+                } else {
+                    const link = document.createElement('a');
+                    link.download = 'coinman-summary.png';
+                    link.href = canvas.toDataURL();
+                    link.click();
+                    alert('📸 บันทึกภาพสรุปสวยงามเรียบร้อยแล้วครับ!');
+                }
+            }, 'image/png');
+        }
+
+        // ฟังก์ชันวาดกรอบมนสำหรับ Canvas
+        function drawRoundedRect(ctx, x, y, width, height, radius, fill, stroke) {
+            ctx.beginPath();
+            ctx.moveTo(x + radius, y);
+            ctx.lineTo(x + width - radius, y);
+            ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+            ctx.lineTo(x + width, y + height - radius);
+            ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+            ctx.lineTo(x + radius, y + height);
+            ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+            ctx.lineTo(x, y + radius);
+            ctx.quadraticCurveTo(x, y, x + radius, y);
+            ctx.closePath();
+            if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+            if (stroke && stroke !== "transparent") { ctx.strokeStyle = stroke; ctx.lineWidth = 1.5; ctx.stroke(); }
+        }
+
+        // ฟังก์ชันวาดกล่องเกณฑ์ 3 ช่อง
+        function drawTargetBoxes(ctx, startX, y, values, labels, colors) {
+            const boxWidth = 186;
+            const gap = 20;
+            for (let i = 0; i < 3; i++) {
+                const x = startX + i * (boxWidth + gap);
+                drawRoundedRect(ctx, x, y, boxWidth, 65, 12, "#F9FAFB", "#E5E7EB");
+                
+                ctx.textAlign = "center";
+                ctx.font = "12px Kanit, sans-serif";
+                ctx.fillStyle = "#6B7280";
+                ctx.fillText(labels[i], x + boxWidth / 2, y + 20);
+
+                ctx.font = "bold 24px Kanit, sans-serif";
+                ctx.fillStyle = colors[i];
+                ctx.fillText(`${values[i]}`, x + boxWidth / 2, y + 52);
+            }
+        }
+
+        let refreshing = false;
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('./sw.js').then(reg => reg.update());
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                if (!refreshing) { refreshing = true; window.location.reload(); }
+            });
+        }
+
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('installAppArea').classList.remove('hidden');
+        });
+
+        function triggerInstall() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        document.getElementById('installAppArea').classList.add('hidden');
+                        countDownloadLog();
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        }
+
+        document.title = "Coin Man";
+        function countDownloadLog() { fetch('https://api.counterapi.dev/v1/coinman_riderdevchan/downloads/up').catch(() => {}); }
+
+        const defaultAvatars = [
+            "https://api.dicebear.com/7.x/bottts/svg?seed=Rider1",
+            "https://api.dicebear.com/7.x/bottts/svg?seed=Rider2",
+            "https://api.dicebear.com/7.x/bottts/svg?seed=Rider3",
+            "https://api.dicebear.com/7.x/bottts/svg?seed=Rider4",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Zack",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=Oliver",
+            "https://api.dicebear.com/7.x/bottts/svg?seed=RacerSpeed",
+            "https://api.dicebear.com/7.x/bottts/svg?seed=HeroMode",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=ProDrive",
+            "https://api.dicebear.com/7.x/avataaars/svg?seed=FastRunner"
+        ];
+
+        function initAvatarGrid() {
+            const grid = document.getElementById('avatarGrid');
+            grid.innerHTML = '';
+            defaultAvatars.forEach((url) => {
+                const img = document.createElement('img');
+                img.src = url;
+                img.className = "w-12 h-12 rounded-full border-2 border-gray-100 hover:border-amber-500 cursor-pointer object-cover bg-amber-50 transition active:scale-90 shadow-sm mx-auto";
+                img.onclick = () => selectAvatar(url);
+                grid.appendChild(img);
+            });
+        }
+
+        function openAvatarModal() { document.getElementById('avatarModal').classList.remove('hidden'); }
+        function closeAvatarModal() { document.getElementById('avatarModal').classList.add('hidden'); }
+
+        function selectAvatar(url) {
+            fetch(url)
+                .then(res => res.text())
+                .then(svgText => {
+                    const encodedContent = encodeURIComponent(svgText);
+                    const dataUrl = `data:image/svg+xml;charset=utf-8,${encodedContent}`;
+                    document.getElementById('userAvatar').src = dataUrl;
+                    localStorage.setItem('savedAvatar', dataUrl);
+                })
+                .catch(() => {
+                    document.getElementById('userAvatar').src = url;
+                    localStorage.setItem('savedAvatar', url);
+                });
+            closeAvatarModal();
+        }
+
+        let cropper = null;
+        function onFileSelected(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const cropImg = document.getElementById('cropImage');
+                cropImg.src = e.target.result;
+                closeAvatarModal();
+                document.getElementById('cropModal').classList.remove('hidden');
+
+                if (cropper) cropper.destroy();
+
+                cropper = new Cropper(cropImg, {
+                    aspectRatio: 1,
+                    viewMode: 1,
+                    dragMode: 'move',
+                    autoCropArea: 0.8,
+                    restore: false,
+                    guides: false,
+                    center: true,
+                    highlight: false,
+                    cropBoxMovable: false,
+                    cropBoxResizable: false,
+                    toggleDragModeOnDblclick: false,
+                });
+            };
+            reader.readAsDataURL(file);
+            event.target.value = '';
+        }
+
+        function closeCropModal() {
+            document.getElementById('cropModal').classList.add('hidden');
+            if (cropper) { cropper.destroy(); cropper = null; }
+        }
+
+        function cropAndSave() {
+            if (!cropper) return;
+            const canvas = cropper.getCroppedCanvas({ width: 300, height: 300 });
+            const croppedDataUrl = canvas.toDataURL('image/jpeg');
+            document.getElementById('userAvatar').src = croppedDataUrl;
+            localStorage.setItem('savedAvatar', croppedDataUrl);
+            closeCropModal();
+        }
+
+        function saveUserProfile() {
+            const name = document.getElementById('userNameInput').value;
+            localStorage.setItem('savedUserName', name);
+        }
+
+        function loadUserProfile() {
+            const savedName = localStorage.getItem('savedUserName');
+            const savedAvatar = localStorage.getItem('savedAvatar');
+            if (savedName) document.getElementById('userNameInput').value = savedName;
+            if (savedAvatar) document.getElementById('userAvatar').src = savedAvatar;
+        }
+
+        function autoSaveSettings() {
+            t1 = parseInt(document.getElementById('target1').value) || 0;
+            t2 = parseInt(document.getElementById('target2').value) || 0;
+            t3 = parseInt(document.getElementById('target3').value) || 0;
+            m1 = parseInt(document.getElementById('money1').value) || 0;
+            m2 = parseInt(document.getElementById('money2').value) || 0;
+            m3 = parseInt(document.getElementById('money3').value) || 0;
+
+            if (t1 >= t2 || t2 >= t3) return;
+
+            localStorage.setItem('savedT1', t1); localStorage.setItem('savedT2', t2); localStorage.setItem('savedT3', t3);
+            localStorage.setItem('savedM1', m1); localStorage.setItem('savedM2', m2); localStorage.setItem('savedM3', m3);
+
+            updateUI();
+        }
+
+        let currentInputMode = 'order'; 
+        let coins = parseInt(localStorage.getItem('savedCoins')) || 0;
+        let orders = parseInt(localStorage.getItem('savedOrders')) || 0;
+        let t1 = parseInt(localStorage.getItem('savedT1')) || 10, t2 = parseInt(localStorage.getItem('savedT2')) || 30, t3 = parseInt(localStorage.getItem('savedT3')) || 50;
+        let m1 = parseInt(localStorage.getItem('savedM1')) || 300, m2 = parseInt(localStorage.getItem('savedM2')) || 395, m3 = parseInt(localStorage.getItem('savedM3')) || 435;
+
+        function handleCombinedInput() {
+            const inputElement = document.getElementById('inputCoins');
+            let typedValue = parseInt(inputElement.value);
+
+            if (currentInputMode === 'order') {
+                if (!isNaN(typedValue) && typedValue > 0) {
+                    orders += typedValue;
+                    localStorage.setItem('savedOrders', orders);
+                }
+                currentInputMode = 'coin';
+                switchInputDesign();
+                updateUI();
+                inputElement.value = '';
+                inputElement.focus();
+            } else {
+                if (!isNaN(typedValue) && typedValue > 0) {
+                    coins += typedValue;
+                    localStorage.setItem('savedCoins', coins);
+                    currentInputMode = 'order';
+                    switchInputDesign();
+                    updateUI();
+                    inputElement.value = '';
+                    inputElement.blur();
+                } else {
+                    inputElement.value = '';
+                    return;
+                }
+            }
+        }
+
+        function switchInputDesign() {
+            const label = document.getElementById('inputLabel');
+            const input = document.getElementById('inputCoins');
+            if (currentInputMode === 'order') {
+                label.innerText = "📥 ขั้นที่ 1: ใส่จำนวนออเดอร์ (หรือกด Enter เพื่อข้าม):";
+                label.className = "text-[11px] font-semibold text-blue-500 block mb-1 text-left pl-1 transition-colors duration-200";
+                input.placeholder = "ใส่จำนวนออเดอร์... (ข้ามได้)";
+                input.className = "w-full p-3.5 border-2 border-blue-500 rounded-xl text-center font-bold text-2xl text-gray-800 focus:outline-none bg-blue-50/30 shadow-inner transition-all duration-200";
+            } else {
+                label.innerText = "📥 ขั้นที่ 2: ใส่จำนวนเหรียญที่ได้จากออเดอร์เมื่อกี้:";
+                label.className = "text-[11px] font-semibold text-emerald-500 block mb-1 text-left pl-1 transition-colors duration-200";
+                input.placeholder = "ใส่จำนวนเหรียญ...";
+                input.className = "w-full p-3.5 border-2 border-emerald-500 rounded-xl text-center font-bold text-2xl text-gray-800 focus:outline-none bg-emerald-50/30 shadow-inner transition-all duration-200";
+            }
+        }
+
+        async function processOCRMultiple(event) {
+            const files = event.target.files;
+            if (!files || files.length === 0) return;
+            const status = document.getElementById('ocrStatus');
+            status.classList.remove('hidden');
+            let updatedTarget = false, updatedMoney = false;
+            try {
+                for (let i = 0; i < Math.min(files.length, 2); i++) {
+                    const { data: { text } } = await Tesseract.recognize(files[i], 'eng');
+                    const numbers = text.match(/\d{2,4}/g);
+                    if (numbers && numbers.length >= 3) {
+                        if (i === 0) {
+                            document.getElementById('target1').value = numbers[0];
+                            document.getElementById('target2').value = numbers[1];
+                            document.getElementById('target3').value = numbers[2];
+                            updatedTarget = true;
+                        } else if (i === 1) {
+                            document.getElementById('money1').value = numbers[0];
+                            document.getElementById('money2').value = numbers[1];
+                            document.getElementById('money3').value = numbers[2];
+                            updatedMoney = true;
+                        }
+                    }
+                }
+                if (updatedTarget || updatedMoney) autoSaveSettings();
+            } catch (err) { alert('เกิดข้อผิดพลาดในการสแกนรูปภาพ'); } finally { status.classList.add('hidden'); event.target.value = ''; }
+        }
+
+        document.getElementById('target1').value = t1;
+        document.getElementById('target2').value = t2;
+        document.getElementById('target3').value = t3;
+        document.getElementById('money1').value = m1;
+        document.getElementById('money2').value = m2;
+        document.getElementById('money3').value = m3;
+
+        function resetCoins() {
+            if (confirm('รีเซ็ตยอดสะสมทั้งหมดให้เป็น 0?')) {
+                coins = 0; orders = 0;
+                localStorage.setItem('savedCoins', coins); localStorage.setItem('savedOrders', orders);
+                currentInputMode = 'order'; switchInputDesign(); updateUI();
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('coinCount').innerText = coins;
+            document.getElementById('orderCount').innerText = orders;
+            document.getElementById('lblT1').innerText = t1; document.getElementById('lblT2').innerText = t2; document.getElementById('lblT3').innerText = t3 + '+';
+            let p = 0;
+            if (coins <= t1) p = (coins / t1) * 33.33;
+            else if (coins <= t2) p = 33.33 + ((coins - t1) / (t2 - t1)) * 33.33;
+            else if (coins <= t3) p = 66.66 + ((coins - t2) / (t3 - t2)) * 33.34;
+            else p = 100;
+            document.getElementById('progressBar').style.width = Math.min(p, 100) + '%';
+            
+            const b = document.getElementById('levelBadge'), r = document.getElementById('remainingPoints');
+            
+            if (coins >= t3) { 
+                b.className = "inline-block px-6 py-2 rounded-full text-xl font-bold bg-yellow-500 text-white animate-bounce shadow-sm"; 
+                b.innerText = `🏆 หลุม 3 เงินสะสม: ${m3} บ.`; 
+                r.className = "text-xl font-bold text-yellow-600 bg-yellow-50 flex flex-col items-center justify-center px-5 py-2.5 rounded-2xl border border-yellow-100 shadow-sm mx-auto min-w-[80%] text-center"; 
+                r.innerHTML = `<div>🎉 สำเร็จเป้าหมายสูงสุดแล้ว!</div>`; 
+            }
+            else if (coins >= t2) { 
+                b.className = "inline-block px-6 py-2 rounded-full text-xl font-bold bg-gray-400 text-white shadow-sm"; 
+                b.innerText = `🥈 หลุม 2 เงินสะสม: ${m2} บ.`; 
+                r.className = "text-xl font-bold text-amber-600 bg-amber-50 flex flex-col items-center justify-center px-5 py-2.5 rounded-2xl border border-amber-100 shadow-sm mx-auto min-w-[80%] text-center"; 
+                r.innerHTML = `<div>อีก 🪙 ${t3 - coins} เหรียญ ถึงหลุม 3</div><div class="text-xl font-bold mt-0.5 text-amber-600">(${m3} บ.)</div>`; 
+            }
+            else if (coins >= t1) { 
+                b.className = "inline-block px-6 py-2 rounded-full text-xl font-bold bg-amber-600 text-white shadow-sm"; 
+                b.innerText = `🥉 หลุม 1 เงินสะสม: ${m1} บ.`; 
+                r.className = "text-xl font-bold text-gray-600 bg-gray-50 flex flex-col items-center justify-center px-5 py-2.5 rounded-2xl border border-gray-100 shadow-sm mx-auto min-w-[80%] text-center"; 
+                r.innerHTML = `<div>อีก 🪙 ${t2 - coins} เหรียญ ถึงหลุม 2</div><div class="text-xl font-bold mt-0.5 text-gray-600">(${m2} บ.)</div>`; 
+            }
+            else { 
+                b.className = "inline-block px-6 py-2 rounded-full text-xl font-bold bg-gray-200 text-gray-700 shadow-sm"; 
+                b.innerText = "⚪ กำลังเดินทางไปหลุมแรก"; 
+                r.className = "text-xl font-bold text-emerald-600 bg-emerald-50 flex flex-col items-center justify-center px-5 py-2.5 rounded-2xl border border-emerald-100 shadow-sm mx-auto min-w-[80%] text-center"; 
+                r.innerHTML = `<div>อีก 🪙 ${t1 - coins} เหรียญ ถึงหลุม 1</div><div class="text-xl font-bold mt-0.5 text-emerald-600">(${m1} บ.)</div>`; 
+            }
+        }
+
+        initAvatarGrid();
+        loadUserProfile();
+        updateUI();
+    </script>
+</body>
+</html>
