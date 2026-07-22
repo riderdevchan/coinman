@@ -71,21 +71,18 @@
                     </div>
                 </div>
 
-                <!-- แถวที่ 2: ตั้งค่าเกณฑ์ประจำวัน + ปุ่มแชร์สรุป + ปุ่มสถิติ (แทรกกลาง) + ปุ่มรีเซ็ต -->
+                <!-- แถวที่ 2: ตั้งค่าเกณฑ์ประจำวัน + ปุ่มแชร์สรุป + ปุ่มสถิติ + ปุ่มรีเซ็ต (พร้อมบันทึกออโต้) -->
                 <div class="flex items-center justify-between pt-1">
                     <h2 class="text-xs font-semibold text-yellow-800 flex items-center gap-1">
                         ⚙️ ตั้งค่าเกณฑ์ประจำวัน
                     </h2>
                     <div class="flex items-center gap-1">
-                        <!-- ปุ่มแชร์สรุป -->
                         <button id="btnShare" onclick="generateVectorImage()" class="bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-700 text-[9px] px-2 py-1 rounded-lg font-bold transition active:scale-95 shadow-sm flex items-center gap-0.5">
                             📸 แชร์
                         </button>
-                        <!-- ปุ่มสถิติ (วางไว้ตรงกลาง) -->
                         <button onclick="openDailyStatsModal()" class="bg-blue-600 hover:bg-blue-700 text-white border border-blue-700 text-[9px] px-2 py-1 rounded-lg font-bold transition active:scale-95 shadow-sm flex items-center gap-0.5">
                             📊 สถิติ
                         </button>
-                        <!-- ปุ่มรีเซ็ต -->
                         <button onclick="resetCoins()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-[9px] px-2 py-1 rounded-lg font-semibold transition active:scale-98 shadow-sm">
                             🔄 รีเซ็ต
                         </button>
@@ -190,38 +187,21 @@
         </div>
     </div>
 
-    <!-- Modal ป๊อปอัพแสดงผลสถิติประจำวัน -->
+    <!-- Modal ป๊อปอัพแสดงผลประวัติสถิติที่เคยบันทึกไว้ -->
     <div id="statsModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden z-50 flex flex-col items-center justify-center p-4">
-        <div class="bg-white rounded-3xl p-5 w-full max-w-xs shadow-2xl space-y-4 text-center">
+        <div class="bg-white rounded-3xl p-5 w-full max-w-xs shadow-2xl space-y-3 text-center">
             <div class="border-b border-gray-100 pb-2">
-                <h3 class="font-bold text-gray-800 text-base flex items-center justify-center gap-1">📊 สรุปสถิติประจำวัน</h3>
-                <p id="statsDateText" class="text-xs text-amber-600 font-semibold mt-0.5">📅 วันนี้</p>
+                <h3 class="font-bold text-gray-800 text-base flex items-center justify-center gap-1">📊 สรุปประวัติสถิติสะสม</h3>
+                <p class="text-[10px] text-gray-400 mt-0.5">รายการผลงานที่คุณเคยกดบันทึก/รีเซ็ตไว้</p>
             </div>
 
-            <div class="space-y-2 text-left bg-gray-50 p-3 rounded-2xl border border-gray-100 text-xs">
-                <div class="flex justify-between items-center">
-                    <span class="text-gray-500">📦 ออเดอร์ที่เก็บได้:</span>
-                    <span id="statOrders" class="font-extrabold text-blue-600 text-sm">0 งาน</span>
-                </div>
-                <div class="flex justify-between items-center border-t border-gray-200/60 pt-1.5">
-                    <span class="text-gray-500">🪙 เหรียญที่ได้สะสม:</span>
-                    <span id="statCoins" class="font-extrabold text-cyan-600 text-sm">0 เหรียญ</span>
-                </div>
-                <div class="flex justify-between items-center border-t border-gray-200/60 pt-1.5">
-                    <span class="text-gray-500">🏆 พิชิตได้:</span>
-                    <span id="statHoles" class="font-extrabold text-amber-600 text-sm">ยังไม่ถึงหลุมแรก</span>
-                </div>
-                <div class="flex justify-between items-center border-t border-gray-200/60 pt-1.5">
-                    <span class="text-gray-500">💰 ยอดเงินรางวัลรวม:</span>
-                    <span id="statMoney" class="font-extrabold text-emerald-600 text-sm">0 บาท</span>
-                </div>
+            <!-- รายการประวัติที่บันทึกไว้ -->
+            <div id="statsHistoryContainer" class="space-y-2 max-h-[50vh] overflow-y-auto text-left pr-1">
+                <!-- Javascript จะเอาเรคคอร์ดมาใส่ที่นี่ -->
             </div>
 
-            <div class="grid grid-cols-2 gap-2 pt-1">
-                <button onclick="clearDailyStatsRecord()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 font-bold text-xs py-2.5 rounded-xl transition shadow-xs">
-                    🗑️ ลบเรคคอร์ด
-                </button>
-                <button onclick="document.getElementById('statsModal').classList.add('hidden')" class="bg-gray-800 hover:bg-gray-900 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-md">
+            <div class="pt-2">
+                <button onclick="document.getElementById('statsModal').classList.add('hidden')" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold text-xs py-2.5 rounded-xl transition shadow-md">
                     ปิดหน้าต่าง
                 </button>
             </div>
@@ -291,46 +271,87 @@
     <canvas id="hiddenCanvas" class="hidden"></canvas>
 
     <script>
-        // --- ระบบสถิติประจำวัน ---
-        function openDailyStatsModal() {
-            const now = new Date();
-            const thaiMonths = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
-            document.getElementById('statsDateText').innerText = `📅 ${now.getDate()} ${thaiMonths[now.getMonth()]} ${now.getFullYear()}`;
+        // --- ระบบสถิติประวัติและการบันทึกอัตโนมัติตอนกดรีเซ็ต ---
+        function resetCoins() {
+            if (confirm('ต้องการบันทึกสถิติผลงานปัจจุบันเข้าประวัติ และรีเซ็ต "ยอดออเดอร์กับเหรียญ" เป็น 0 ใช่หรือไม่?')) {
+                // 1. บันทึกผลงานปัจจุบันลงประวัติ (ถ้ามีผลงาน)
+                if (orders > 0 || coins > 0) {
+                    const now = new Date();
+                    const thaiMonths = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+                    const dateStr = `📅 ${now.getDate()} ${thaiMonths[now.getMonth()]} ${now.getFullYear()} (${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')} น.)`;
 
-            document.getElementById('statOrders').innerText = `${orders} งาน`;
-            document.getElementById('statCoins').innerText = `${coins} เหรียญ`;
+                    let holeText = "ยังไม่ถึงหลุมแรก";
+                    let moneyTotal = 0;
 
-            let holeText = "ยังไม่ถึงหลุมแรก";
-            let moneyTotal = 0;
+                    if (coins >= t3) { holeText = "🏆 หลุม 3"; moneyTotal = m3; }
+                    else if (coins >= t2) { holeText = "🥈 หลุม 2"; moneyTotal = m2; }
+                    else if (coins >= t1) { holeText = "🥉 หลุม 1"; moneyTotal = m1; }
 
-            if (coins >= t3) {
-                holeText = "🏆 หลุม 3 (สำเร็จสูงสุด!)";
-                moneyTotal = m3;
-            } else if (coins >= t2) {
-                holeText = "🥈 หลุม 2";
-                moneyTotal = m2;
-            } else if (coins >= t1) {
-                holeText = "🥉 หลุม 1";
-                moneyTotal = m1;
-            }
+                    const newRecord = {
+                        id: Date.now(),
+                        date: dateStr,
+                        orders: orders,
+                        coins: coins,
+                        hole: holeText,
+                        money: moneyTotal
+                    };
 
-            document.getElementById('statHoles').innerText = holeText;
-            document.getElementById('statMoney').innerText = `${moneyTotal} บาท`;
+                    let historyRecords = JSON.parse(localStorage.getItem('savedHistoryRecords')) || [];
+                    historyRecords.unshift(newRecord); // นำสถิติล่าสุดไว้ด้านบนสุด
+                    localStorage.setItem('savedHistoryRecords', JSON.stringify(historyRecords));
+                }
 
-            document.getElementById('statsModal').classList.remove('hidden');
-        }
-
-        function clearDailyStatsRecord() {
-            if (confirm('คุณต้องการลบเรคคอร์ดสถิติประจำวันนี้ทั้งหมดใช่หรือไม่? (ยอดสะสมจะกลับเป็น 0)')) {
+                // 2. รีเซ็ตค่างาน (ออเดอร์) และ เหรียญ เป็น 0 แค่ 2 ช่องนี้
                 coins = 0;
                 orders = 0;
-                localStorage.setItem('savedCoins', coins);
-                localStorage.setItem('savedOrders', orders);
+                localStorage.setItem('savedCoins', 0);
+                localStorage.setItem('savedOrders', 0);
+
                 currentInputMode = 'order';
                 switchInputDesign();
                 updateUI();
-                document.getElementById('statsModal').classList.add('hidden');
-                alert('ลบเรคคอร์ดสถิติเรียบร้อยแล้ว!');
+                alert('💾 บันทึกประวัติสถิติเรียบร้อย! ค่างานและเหรียญปรับเป็น 0 แล้วครับ');
+            }
+        }
+
+        function openDailyStatsModal() {
+            renderHistoryRecords();
+            document.getElementById('statsModal').classList.remove('hidden');
+        }
+
+        function renderHistoryRecords() {
+            const container = document.getElementById('statsHistoryContainer');
+            const historyRecords = JSON.parse(localStorage.getItem('savedHistoryRecords')) || [];
+
+            if (historyRecords.length === 0) {
+                container.innerHTML = `<div class="text-center py-6 text-gray-400 text-xs italic">ยังไม่มีประวัติสถิติที่บันทึกไว้<br>(สถิติจะถูกบันทึกเมื่อคุณกดปุ่ม "🔄 รีเซ็ต")</div>`;
+                return;
+            }
+
+            container.innerHTML = historyRecords.map(item => `
+                <div class="bg-gray-50 border border-gray-200 rounded-2xl p-3 space-y-1.5 shadow-xs relative group">
+                    <div class="flex justify-between items-center pb-1 border-b border-gray-200/60">
+                        <span class="font-bold text-[11px] text-amber-800">${item.date}</span>
+                        <button onclick="deleteHistoryRecord(${item.id})" class="bg-rose-100 hover:bg-rose-200 text-rose-700 text-[10px] font-bold px-2 py-0.5 rounded-lg transition active:scale-95 flex items-center gap-0.5">
+                            🗑️ ลบ
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-1 text-[11px] pt-0.5">
+                        <div class="text-gray-600">📦 ออเดอร์: <b class="text-blue-600">${item.orders} งาน</b></div>
+                        <div class="text-gray-600">🪙 เหรียญ: <b class="text-cyan-600">${item.coins} เหรียญ</b></div>
+                        <div class="text-gray-600">🏆 หลุม: <b class="text-amber-600">${item.hole}</b></div>
+                        <div class="text-gray-600">💰 เงินรางวัล: <b class="text-emerald-600">${item.money} บ.</b></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function deleteHistoryRecord(id) {
+            if (confirm('ต้องการลบเรคคอร์ดสถิตินี้ใช่หรือไม่?')) {
+                let historyRecords = JSON.parse(localStorage.getItem('savedHistoryRecords')) || [];
+                historyRecords = historyRecords.filter(item => item.id !== id);
+                localStorage.setItem('savedHistoryRecords', JSON.stringify(historyRecords));
+                renderHistoryRecords();
             }
         }
 
@@ -792,14 +813,6 @@
         document.getElementById('money1').value = m1;
         document.getElementById('money2').value = m2;
         document.getElementById('money3').value = m3;
-
-        function resetCoins() {
-            if (confirm('รีเซ็ตยอดสะสมทั้งหมดให้เป็น 0?')) {
-                coins = 0; orders = 0;
-                localStorage.setItem('savedCoins', coins); localStorage.setItem('savedOrders', orders);
-                currentInputMode = 'order'; switchInputDesign(); updateUI();
-            }
-        }
 
         function updateUI() {
             document.getElementById('coinCount').innerText = coins;
