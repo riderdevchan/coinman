@@ -2,8 +2,8 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
-    <title>Coin Man</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>ระบบสะสมเหรียญ</title>
     <link rel="manifest" href="manifest.json">
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -22,171 +22,169 @@
         .p-rank-select { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
     </style>
 </head>
-<body class="bg-gray-50 h-screen flex flex-col justify-between">
+<body class="bg-gray-50 h-[100dvh] w-screen flex flex-col justify-start overflow-hidden select-none">
 
-    <div class="w-full h-full flex flex-col bg-gray-50">
+    <div class="w-full max-w-md mx-auto flex flex-col h-full bg-gray-50 p-2 space-y-1.5 justify-start">
         
         <!-- ส่วนหัว (Header) -->
-        <div class="bg-gradient-to-r from-yellow-500 to-amber-600 text-white shadow-md flex-none">
-            <div class="py-3 text-center">
-                <h1 class="text-2xl font-bold tracking-wide flex items-center justify-center gap-1">🪙 Coin Man</h1>
+        <div class="bg-gradient-to-r from-yellow-500 to-amber-600 text-white shadow-md rounded-xl flex-none">
+            <div class="py-1.5 text-center">
+                <h1 class="text-lg font-bold tracking-wide flex items-center justify-center gap-1">🪙 ระบบสะสมเหรียญ</h1>
             </div>
-            <div id="installAppArea" class="hidden bg-amber-700/60 px-4 py-2 text-xs flex justify-between items-center border-t border-amber-400/30 animate-pulse">
-                <span>📲 ติดตั้ง Coin Man ลงหน้าจอมือถือของคุณ</span>
-                <button onclick="triggerInstall()" class="bg-white text-amber-700 px-3 py-1 rounded-md font-bold shadow-md active:scale-95">ติดตั้งแอป</button>
+            <div id="installAppArea" class="hidden bg-amber-700/60 px-3 py-1 text-[10px] flex justify-between items-center border-t border-amber-400/30 animate-pulse">
+                <span>📲 ติดตั้งระบบสะสมเหรียญลงเครื่อง</span>
+                <button onclick="triggerInstall()" class="bg-white text-amber-700 px-2 py-0.5 rounded font-bold shadow-md active:scale-95">ติดตั้งแอป</button>
             </div>
         </div>
 
-        <!-- ส่วนเนื้อหาหลัก -->
-        <div class="px-5 py-3 flex-1 flex flex-col space-y-2 overflow-y-auto">
+        <!-- การ์ดตั้งค่าเกณฑ์ประจำวัน + โปรไฟล์ -->
+        <div class="bg-white rounded-2xl p-2.5 border border-gray-100 shadow-sm flex-none space-y-2">
             
-            <!-- การ์ดตั้งค่าเกณฑ์ประจำวัน + โปรไฟล์ -->
-            <div class="bg-white rounded-2xl p-3 border border-gray-100 shadow-sm flex-none space-y-3">
-                
-                <!-- แถวที่ 1: โปรไฟล์ผู้ใช้ (จิ้มเปลี่ยนรูป/ชื่อ/ยศ ได้ทันที) -->
-                <div class="flex items-center justify-between pb-2 border-b border-gray-100">
-                    <div class="flex items-center gap-2.5">
-                        <div class="relative cursor-pointer group flex-none" onclick="openAvatarModal()">
-                            <img id="userAvatar" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23F59E0B'/><text x='50%' y='55%' font-size='40' text-anchor='middle' dominant-baseline='middle'>🛵</text></svg>" class="w-11 h-11 rounded-full border-2 border-amber-500 object-cover bg-amber-50 shadow-sm">
-                            <span class="absolute -bottom-1 -right-1 bg-amber-500 text-white p-0.5 rounded-full text-[8px]">✏️</span>
+            <!-- แถวที่ 1: โปรไฟล์ผู้ใช้ -->
+            <div class="flex items-center justify-between pb-1.5 border-b border-gray-100">
+                <div class="flex items-center gap-2">
+                    <div class="relative cursor-pointer group flex-none" onclick="openAvatarModal()">
+                        <img id="userAvatar" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23F59E0B'/><text x='50%' y='55%' font-size='40' text-anchor='middle' dominant-baseline='middle'>🛵</text></svg>" class="w-9 h-9 rounded-full border-2 border-amber-500 object-cover bg-amber-50 shadow-sm">
+                        <span class="absolute -bottom-1 -right-1 bg-amber-500 text-white p-0.5 rounded-full text-[7px]">✏️</span>
+                    </div>
+                    <div class="flex flex-col">
+                        <div class="relative group cursor-pointer" onclick="enableEditName()">
+                            <h2 id="userNameText" class="font-bold text-xs text-gray-800 leading-tight">Riderdev_Chan</h2>
+                            <input type="text" id="editNameInput" class="edit-name-input hidden font-bold text-xs text-gray-800 w-28" onblur="disableEditName()" onkeydown="handleEditNameKey(event)">
                         </div>
-                        <div class="flex flex-col">
-                            <!-- จิ้มที่ชื่อเพื่อแก้ไข -->
-                            <div class="relative group cursor-pointer" onclick="enableEditName()">
-                                <h2 id="userNameText" class="font-bold text-sm text-gray-800 leading-tight">Riderdev_Chan</h2>
-                                <input type="text" id="editNameInput" class="edit-name-input hidden font-bold text-sm text-gray-800 w-36" onblur="disableEditName()" onkeydown="handleEditNameKey(event)">
-                            </div>
-                            
-                            <!-- จิ้มที่ป้ายยศเพื่อเลือกยศ 5 ระดับ -->
-                            <div id="rankBadgeContainer" class="relative inline-flex items-center bg-purple-100 text-purple-700 text-[9px] font-bold px-2 py-0.5 rounded-full w-max mt-0.5 shadow-xs border border-purple-200 cursor-pointer">
-                                <span id="p_rankLabel">✨ LEGEND</span>
-                                <select id="p_rankSelect" class="p-rank-select" onchange="changeRank()"></select>
-                            </div>
+                        
+                        <div id="rankBadgeContainer" class="relative inline-flex items-center bg-purple-100 text-purple-700 text-[8px] font-bold px-1.5 py-0.5 rounded-full w-max mt-0.5 shadow-xs border border-purple-200 cursor-pointer">
+                            <span id="p_rankLabel">✨ LEGEND</span>
+                            <select id="p_rankSelect" class="p-rank-select" onchange="changeRank()"></select>
                         </div>
                     </div>
-                    <div>
-                        <button onclick="document.getElementById('ocrInputAll').click()" class="bg-blue-500 hover:bg-blue-600 text-white px-2.5 py-1.5 rounded-xl text-xs font-bold shadow-sm active:scale-95 flex items-center gap-1">
-                            📸 สแกนจากรูป
-                        </button>
-                        <input type="file" id="ocrInputAll" accept="image/*" multiple class="hidden" onchange="processOCRMultiple(event)">
-                        <input type="file" id="customAvatarInput" accept="image/*" class="hidden" onchange="onFileSelected(event)">
-                    </div>
                 </div>
-
-                <!-- แถวที่ 2: ตั้งค่าเกณฑ์ประจำวัน + ปุ่มแชร์สรุป (วางซ้ายมือของปุ่มรีเซ็ต) -->
-                <div class="flex items-center justify-between pt-1">
-                    <h2 class="text-xs font-semibold text-yellow-800 flex items-center gap-1">
-                        ⚙️ ตั้งค่าเกณฑ์ประจำวัน
-                    </h2>
-                    <div class="flex items-center gap-1.5">
-                        <button id="btnShare" onclick="generateVectorImage()" class="bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-700 text-[10px] px-2.5 py-1 rounded-lg font-bold transition active:scale-95 shadow-sm flex items-center gap-1">
-                            📸 แชร์สรุป
-                        </button>
-                        <button onclick="resetCoins()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-[10px] px-2.5 py-1 rounded-lg font-semibold transition active:scale-98 shadow-sm">
-                            🔄 รีเซ็ต 0
-                        </button>
-                    </div>
-                </div>
-
-                <div id="ocrStatus" class="text-[10px] text-blue-600 mb-1 hidden text-center italic">กำลังสแกนรูปภาพ... โปรดรอสักครู่</div>
-                
-                <!-- ชุดที่ 1: เกณฑ์จำนวนเหรียญ -->
                 <div>
-                    <span class="text-[11px] font-semibold text-amber-800 block mb-1">📊 เกณฑ์จำนวนเหรียญ</span>
-                    <div class="grid grid-cols-3 gap-2">
-                        <div>
-                            <label class="text-[10px] text-gray-500 block mb-0.5 text-center font-medium">หลุม 1</label>
-                            <input type="number" id="target1" value="10" inputmode="numeric" onchange="autoSaveSettings()" class="w-full p-2 border border-gray-200 rounded-lg text-center font-bold text-amber-700 text-base focus:outline-yellow-500 bg-gray-50">
-                        </div>
-                        <div>
-                            <label class="text-[10px] text-gray-500 block mb-0.5 text-center font-medium">หลุม 2</label>
-                            <input type="number" id="target2" value="30" inputmode="numeric" onchange="autoSaveSettings()" class="w-full p-2 border border-gray-200 rounded-lg text-center font-bold text-gray-500 text-base focus:outline-yellow-500 bg-gray-50">
-                        </div>
-                        <div>
-                            <label class="text-[10px] text-gray-500 block mb-0.5 text-center font-medium">หลุม 3</label>
-                            <input type="number" id="target3" value="50" inputmode="numeric" onchange="autoSaveSettings()" class="w-full p-2 border border-gray-200 rounded-lg text-center font-bold text-yellow-600 text-base focus:outline-yellow-500 bg-gray-50">
-                        </div>
-                    </div>
+                    <button onclick="document.getElementById('ocrInputAll').click()" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded-lg text-[10px] font-bold shadow-sm active:scale-95 flex items-center gap-1">
+                        📸 สแกนจากรูป
+                    </button>
+                    <input type="file" id="ocrInputAll" accept="image/*" multiple class="hidden" onchange="processOCRMultiple(event)">
+                    <input type="file" id="customAvatarInput" accept="image/*" class="hidden" onchange="onFileSelected(event)">
                 </div>
+            </div>
 
-                <!-- ชุดที่ 2: เกณฑ์จำนวนเงิน -->
-                <div class="border-t border-gray-100 pt-2">
-                    <span class="text-[11px] font-semibold text-blue-800 block mb-1">💰 เกณฑ์จำนวนเงิน (บาท)</span>
-                    <div class="grid grid-cols-3 gap-2">
-                        <div>
-                            <label class="text-[10px] text-gray-500 block mb-0.5 text-center font-medium">หลุม 1</label>
-                            <input type="number" id="money1" value="300" inputmode="numeric" onchange="autoSaveSettings()" class="w-full p-2 border border-gray-200 rounded-lg text-center font-bold text-amber-700 text-base focus:outline-yellow-500 bg-gray-50">
-                        </div>
-                        <div>
-                            <label class="text-[10px] text-gray-500 block mb-0.5 text-center font-medium">หลุม 2</label>
-                            <input type="number" id="money2" value="395" inputmode="numeric" onchange="autoSaveSettings()" class="w-full p-2 border border-gray-200 rounded-lg text-center font-bold text-gray-500 text-base focus:outline-yellow-500 bg-gray-50">
-                        </div>
-                        <div>
-                            <label class="text-[10px] text-gray-500 block mb-0.5 text-center font-medium">หลุม 3</label>
-                            <input type="number" id="money3" value="435" inputmode="numeric" onchange="autoSaveSettings()" class="w-full p-2 border border-gray-200 rounded-lg text-center font-bold text-yellow-600 text-base focus:outline-yellow-500 bg-gray-50">
-                        </div>
+            <!-- แถวที่ 2: ตั้งค่าเกณฑ์ประจำวัน + ปุ่มแชร์สรุป -->
+            <div class="flex items-center justify-between pt-0.5">
+                <h2 class="text-[11px] font-semibold text-yellow-800 flex items-center gap-1">
+                    ⚙️ ตั้งค่าเกณฑ์ประจำวัน
+                </h2>
+                <div class="flex items-center gap-1">
+                    <button id="btnShare" onclick="generateVectorImage()" class="bg-emerald-600 hover:bg-emerald-700 text-white border border-emerald-700 text-[9px] px-2 py-0.5 rounded-md font-bold transition active:scale-95 shadow-sm flex items-center gap-1">
+                        📸 แชร์สรุป
+                    </button>
+                    <button onclick="resetCoins()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-[9px] px-2 py-0.5 rounded-md font-semibold transition active:scale-98 shadow-sm">
+                        🔄 รีเซ็ต 0
+                    </button>
+                </div>
+            </div>
+
+            <div id="ocrStatus" class="text-[9px] text-blue-600 hidden text-center italic">กำลังสแกนรูปภาพ...</div>
+            
+            <!-- ชุดที่ 1: เกณฑ์จำนวนเหรียญ -->
+            <div>
+                <span class="text-[10px] font-semibold text-amber-800 block mb-0.5">📊 เกณฑ์จำนวนเหรียญ</span>
+                <div class="grid grid-cols-3 gap-1.5">
+                    <div>
+                        <label class="text-[9px] text-gray-500 block text-center font-medium">หลุม 1</label>
+                        <input type="number" id="target1" value="10" inputmode="numeric" onchange="autoSaveSettings()" class="w-full p-1 border border-gray-200 rounded-md text-center font-bold text-amber-700 text-xs focus:outline-yellow-500 bg-gray-50">
+                    </div>
+                    <div>
+                        <label class="text-[9px] text-gray-500 block text-center font-medium">หลุม 2</label>
+                        <input type="number" id="target2" value="30" inputmode="numeric" onchange="autoSaveSettings()" class="w-full p-1 border border-gray-200 rounded-md text-center font-bold text-gray-500 text-xs focus:outline-yellow-500 bg-gray-50">
+                    </div>
+                    <div>
+                        <label class="text-[9px] text-gray-500 block text-center font-medium">หลุม 3</label>
+                        <input type="number" id="target3" value="50" inputmode="numeric" onchange="autoSaveSettings()" class="w-full p-1 border border-gray-200 rounded-md text-center font-bold text-yellow-600 text-xs focus:outline-yellow-500 bg-gray-50">
                     </div>
                 </div>
             </div>
 
-            <!-- กล่องการ์ดครอบส่วนแสดงผลหลัก -->
-            <div class="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex-none space-y-4">
-                <div class="grid grid-cols-2 gap-4 border-b border-gray-100 pb-3">
-                    <div class="space-y-0.5 text-center border-r border-gray-100">
-                        <p class="text-gray-400 text-xs uppercase tracking-wider font-semibold">ยอดออเดอร์สะสม</p>
-                        <div class="text-5xl font-extrabold text-blue-600 flex justify-center items-center gap-2">
-                            <span id="orderCount">0</span>
-                            <span class="text-4xl">📦</span>
-                        </div>
-                    </div>
-                    <div class="space-y-0.5 text-center">
-                        <p class="text-gray-400 text-xs uppercase tracking-wider font-semibold">ยอดเหรียญสะสม</p>
-                        <div class="text-5xl font-extrabold text-cyan-600 flex justify-center items-center gap-2">
-                            <span id="coinCount">0</span>
-                            <span class="text-4xl">🪙</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="space-y-3 text-center">
+            <!-- ชุดที่ 2: เกณฑ์จำนวนเงิน -->
+            <div class="border-t border-gray-100 pt-1">
+                <span class="text-[10px] font-semibold text-blue-800 block mb-0.5">💰 เกณฑ์จำนวนเงิน (บาท)</span>
+                <div class="grid grid-cols-3 gap-1.5">
                     <div>
-                        <span id="levelBadge" class="inline-block px-5 py-2 rounded-full text-xl font-bold bg-gray-200 text-gray-700 shadow-sm">⚪ กำลังเริ่ม</span>
+                        <label class="text-[9px] text-gray-500 block text-center font-medium">หลุม 1</label>
+                        <input type="number" id="money1" value="300" inputmode="numeric" onchange="autoSaveSettings()" class="w-full p-1 border border-gray-200 rounded-md text-center font-bold text-amber-700 text-xs focus:outline-yellow-500 bg-gray-50">
                     </div>
                     <div>
-                        <div id="remainingPoints" class="text-xl font-bold text-emerald-600 bg-emerald-50 flex flex-col items-center justify-center px-5 py-2.5 rounded-2xl border border-emerald-100 shadow-sm mx-auto min-w-[80%] text-center">
-                            อีก 0 เหรียญ จะถึงหลุมถัดไป
-                        </div>
+                        <label class="text-[9px] text-gray-500 block text-center font-medium">หลุม 2</label>
+                        <input type="number" id="money2" value="395" inputmode="numeric" onchange="autoSaveSettings()" class="w-full p-1 border border-gray-200 rounded-md text-center font-bold text-gray-500 text-xs focus:outline-yellow-500 bg-gray-50">
                     </div>
-                </div>
-
-                <div class="w-full pt-1">
-                    <label id="inputLabel" class="text-[11px] font-semibold text-blue-500 block mb-1 text-left pl-1 transition-colors duration-200">📥 ขั้นที่ 1: ใส่จำนวนออเดอร์ (หรือกด Enter เพื่อข้าม):</label>
-                    <input type="number" id="inputCoins" placeholder="ใส่จำนวนออเดอร์... (ข้ามได้)" inputmode="numeric" 
-                           onkeydown="if(event.key==='Enter') handleCombinedInput()" 
-                           class="w-full p-3.5 border-2 border-blue-500 rounded-xl text-center font-bold text-2xl text-gray-800 focus:outline-none bg-blue-50/30 shadow-inner transition-all duration-200">
-                </div>
-
-                <div class="space-y-1 pt-2">
-                    <div class="w-full bg-gray-200 rounded-full h-4 overflow-hidden relative shadow-inner">
-                        <div id="progressBar" class="bg-gradient-to-r from-amber-500 via-gray-400 to-yellow-500 h-4 rounded-full transition-all duration-300" style="width: 0%"></div>
-                    </div>
-                    <div class="flex justify-between text-[10px] text-gray-400 font-bold px-1">
-                        <span>0</span>
-                        <span id="lblT1" class="text-amber-700">10</span>
-                        <span id="lblT2" class="text-gray-500">30</span>
-                        <span id="lblT3" class="text-yellow-600">50+</span>
-                    </div>
-                    <!-- แฮชแท็กลิงก์ดาวน์โหลด (ดาวน์โหลดไฟล์ download.html โดยไม่เปลี่ยนดีไซน์เดิม) -->
-                    <div class="text-right pt-0.5">
-                        <a href="download.html" class="text-[10px] text-slate-400 font-medium italic">#RiderdevChan</a>
+                    <div>
+                        <label class="text-[9px] text-gray-500 block text-center font-medium">หลุม 3</label>
+                        <input type="number" id="money3" value="435" inputmode="numeric" onchange="autoSaveSettings()" class="w-full p-1 border border-gray-200 rounded-md text-center font-bold text-yellow-600 text-xs focus:outline-yellow-500 bg-gray-50">
                     </div>
                 </div>
             </div>
-
         </div>
+
+        <!-- กล่องการ์ดครอบส่วนแสดงผลหลัก (ปรับย่อขนาดกรอบแดงบน-ล่างแล้ว) -->
+        <div class="bg-white border border-gray-100 rounded-2xl p-2.5 shadow-sm space-y-2 flex-none">
+            
+            <!-- กรอบสีแดงบน: ปรับย่อขนาดออเดอร์/เหรียญลง 1 ระดับ -->
+            <div class="grid grid-cols-2 gap-2 border-b border-gray-100 pb-1.5">
+                <div class="space-y-0.5 text-center border-r border-gray-100">
+                    <p class="text-gray-400 text-[10px] uppercase font-semibold">ยอดออเดอร์สะสม</p>
+                    <div class="text-4xl font-extrabold text-blue-600 flex justify-center items-center gap-1">
+                        <span id="orderCount">0</span>
+                        <span class="text-2xl">📦</span>
+                    </div>
+                </div>
+                <div class="space-y-0.5 text-center">
+                    <p class="text-gray-400 text-[10px] uppercase font-semibold">ยอดเหรียญสะสม</p>
+                    <div class="text-4xl font-extrabold text-cyan-600 flex justify-center items-center gap-1">
+                        <span id="coinCount">0</span>
+                        <span class="text-2xl">🪙</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ส่วนแสดงสถานะหลุม -->
+            <div class="space-y-1 text-center">
+                <div>
+                    <span id="levelBadge" class="inline-block px-3 py-0.5 rounded-full text-xs font-bold bg-gray-200 text-gray-700 shadow-xs">⚪ กำลังเริ่ม</span>
+                </div>
+                <div>
+                    <div id="remainingPoints" class="text-xs font-bold text-emerald-600 bg-emerald-50 flex flex-col items-center justify-center px-3 py-1.5 rounded-xl border border-emerald-100 shadow-xs mx-auto min-w-[80%] text-center">
+                        อีก 0 เหรียญ จะถึงหลุมถัดไป
+                    </div>
+                </div>
+            </div>
+
+            <!-- กรอบสีแดงล่าง: ปรับย่อขนาดช่องกรอกลง 1 ระดับ -->
+            <div class="w-full pt-0.5">
+                <label id="inputLabel" class="text-[10px] font-semibold text-blue-500 block mb-0.5 text-left pl-1">📥 ขั้นที่ 1: ใส่จำนวนออเดอร์ (หรือกด Enter เพื่อข้าม):</label>
+                <input type="number" id="inputCoins" placeholder="ใส่จำนวนออเดอร์... (ข้ามได้)" inputmode="numeric" 
+                       onkeydown="if(event.key==='Enter') handleCombinedInput()" 
+                       class="w-full p-1.5 border-2 border-blue-500 rounded-lg text-center font-bold text-lg text-gray-800 focus:outline-none bg-blue-50/30 shadow-inner">
+            </div>
+
+            <!-- ส่วนแถบบาร์และแฮชแท็กด้านล่างสุด -->
+            <div class="space-y-0.5 pt-0.5">
+                <div class="w-full bg-gray-200 rounded-full h-3 overflow-hidden relative shadow-inner">
+                    <div id="progressBar" class="bg-gradient-to-r from-amber-500 via-gray-400 to-yellow-500 h-3 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <div class="flex justify-between text-[9px] text-gray-400 font-bold px-1">
+                    <span>0</span>
+                    <span id="lblT1" class="text-amber-700">10</span>
+                    <span id="lblT2" class="text-gray-500">30</span>
+                    <span id="lblT3" class="text-yellow-600">50+</span>
+                </div>
+                <div class="text-right pt-0.5">
+                    <a href="download.html" class="text-[9px] text-slate-400 font-medium italic">#RiderdevChan</a>
+                </div>
+            </div>
+        </div>
+
     </div>
 
-    <!-- Modal ป๊อปอัพแสดงผลลัพธ์รูปภาพสรุปพร้อมเซฟ/แชร์ -->
+    <!-- Modal ป๊อปอัพแสดงผลลัพธ์รูปภาพสรุป -->
     <div id="resultModal" class="fixed inset-0 bg-black/80 backdrop-blur-md hidden z-50 flex flex-col items-center justify-center p-4">
         <div class="bg-white rounded-3xl p-4 w-full max-w-xs shadow-2xl space-y-3 text-center">
             <h3 class="font-bold text-gray-800 text-base">📸 รูปสรุปผลงาน Coin Man</h3>
@@ -311,7 +309,6 @@
                 const rankStyle = rankStyles[p_rank];
                 const avatarSrc = document.getElementById('userAvatar').src;
                 
-                // คำนวณวันที่และเวลาปัจจุบัน
                 const now = new Date();
                 const thaiMonths = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
                 const dateStr = `📅 ${now.getDate()} ${thaiMonths[now.getMonth()]} ${now.getFullYear()}`;
@@ -319,7 +316,6 @@
                 const minutes = String(now.getMinutes()).padStart(2, '0');
                 const timeStr = `⏰ ${hours}:${minutes} น.`;
 
-                // คำนวณเปอร์เซ็นต์ Progress Bar
                 let p = 0;
                 if (coins <= t1) p = (coins / t1) * 33.33;
                 else if (coins <= t2) p = 33.33 + ((coins - t1) / (t2 - t1)) * 33.33;
@@ -327,7 +323,6 @@
                 else p = 100;
                 const barWidth = Math.min((p / 100) * 520, 520);
 
-                // ข้อความระยะหลุมถัดไป
                 let remLine1 = "", remLine2 = "", remColor = "#059669";
                 if (coins >= t3) {
                     remLine1 = "🎉 สำเร็จเป้าหมายสูงสุดแล้ว!";
@@ -346,7 +341,6 @@
                     remColor = "#059669";
                 }
 
-                // สร้าง SVG แม่แบบ
                 const svgString = `
                 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="600" height="880" viewBox="0 0 600 880">
                     <style>
@@ -366,21 +360,17 @@
                         </clipPath>
                     </defs>
                     <rect x="20" y="20" width="560" height="65" fill="url(#headerGrad)" rx="16"/>
-                    <text x="300" y="60" fill="#FFFFFF" font-size="24" font-weight="700" text-anchor="middle">🪙 Coin Man</text>
+                    <text x="300" y="60" fill="#FFFFFF" font-size="24" font-weight="700" text-anchor="middle">🪙 ระบบสะสมเหรียญ</text>
                     
-                    <!-- การ์ดเกณฑ์ -->
                     <rect x="20" y="100" width="560" height="280" fill="#FFFFFF" stroke="#F3F4F6" stroke-width="2" rx="20"/>
                     
-                    <!-- รูปโปรไฟล์ -->
                     <image href="${avatarSrc}" x="40" y="115" width="50" height="50" clip-path="url(#avatarClip)" preserveAspectRatio="xMidYMid slice" />
                     <circle cx="65" cy="140" r="25" fill="none" stroke="#F59E0B" stroke-width="2"/>
 
-                    <!-- ชื่อผู้ใช้ & Badge ยศ -->
                     <text x="100" y="138" fill="#1F2937" font-size="18" font-weight="700">${userName}</text>
                     <rect x="100" y="148" width="115" height="20" fill="${rankStyle.svgFill}" rx="10"/>
                     <text x="157" y="162" fill="${rankStyle.svgText}" font-size="10" font-weight="700" text-anchor="middle">${rankStyle.name}</text>
                     
-                    <!-- วันที่ และ เวลา ขวาบน -->
                     <text x="560" y="138" fill="#4B5563" font-size="12" font-weight="600" text-anchor="end">${dateStr}</text>
                     <text x="560" y="158" fill="#059669" font-size="12" font-weight="700" text-anchor="end">${timeStr}</text>
 
@@ -474,8 +464,8 @@
                             if (navigator.canShare({ files: [file] })) {
                                 try {
                                     await navigator.share({
-                                        title: 'สรุปผลงาน Coin Man',
-                                        text: '🪙 ยอดสรุปผลงานประจำวัน Coin Man',
+                                        title: 'สรุปผลงาน ระบบสะสมเหรียญ',
+                                        text: '🪙 ยอดสรุปผลงานประจำวัน ระบบสะสมเหรียญ',
                                         files: [file]
                                     });
                                 } catch (e) {}
@@ -518,7 +508,7 @@
             }
         }
 
-        document.title = "Coin Man";
+        document.title = "ระบบสะสมเหรียญ";
         function countDownloadLog() { fetch('https://api.counterapi.dev/v1/coinman_riderdevchan/downloads/up').catch(() => {}); }
 
         const defaultAvatars = [
@@ -670,14 +660,14 @@
             const input = document.getElementById('inputCoins');
             if (currentInputMode === 'order') {
                 label.innerText = "📥 ขั้นที่ 1: ใส่จำนวนออเดอร์ (หรือกด Enter เพื่อข้าม):";
-                label.className = "text-[11px] font-semibold text-blue-500 block mb-1 text-left pl-1 transition-colors duration-200";
+                label.className = "text-[10px] font-semibold text-blue-500 block mb-0.5 text-left pl-1";
                 input.placeholder = "ใส่จำนวนออเดอร์... (ข้ามได้)";
-                input.className = "w-full p-3.5 border-2 border-blue-500 rounded-xl text-center font-bold text-2xl text-gray-800 focus:outline-none bg-blue-50/30 shadow-inner transition-all duration-200";
+                input.className = "w-full p-1.5 border-2 border-blue-500 rounded-lg text-center font-bold text-lg text-gray-800 focus:outline-none bg-blue-50/30 shadow-inner";
             } else {
                 label.innerText = "📥 ขั้นที่ 2: ใส่จำนวนเหรียญที่ได้จากออเดอร์เมื่อกี้:";
-                label.className = "text-[11px] font-semibold text-emerald-500 block mb-1 text-left pl-1 transition-colors duration-200";
+                label.className = "text-[10px] font-semibold text-emerald-500 block mb-0.5 text-left pl-1";
                 input.placeholder = "ใส่จำนวนเหรียญ...";
-                input.className = "w-full p-3.5 border-2 border-emerald-500 rounded-xl text-center font-bold text-2xl text-gray-800 focus:outline-none bg-emerald-50/30 shadow-inner transition-all duration-200";
+                input.className = "w-full p-1.5 border-2 border-emerald-500 rounded-lg text-center font-bold text-lg text-gray-800 focus:outline-none bg-emerald-50/30 shadow-inner";
             }
         }
 
@@ -738,28 +728,28 @@
             const b = document.getElementById('levelBadge'), r = document.getElementById('remainingPoints');
             
             if (coins >= t3) { 
-                b.className = "inline-block px-6 py-2 rounded-full text-xl font-bold bg-yellow-500 text-white animate-bounce shadow-sm"; 
+                b.className = "inline-block px-3 py-0.5 rounded-full text-xs font-bold bg-yellow-500 text-white animate-bounce shadow-xs"; 
                 b.innerText = `🏆 หลุม 3 เงินสะสม: ${m3} บ.`; 
-                r.className = "text-xl font-bold text-yellow-600 bg-yellow-50 flex flex-col items-center justify-center px-5 py-2.5 rounded-2xl border border-yellow-100 shadow-sm mx-auto min-w-[80%] text-center"; 
+                r.className = "text-xs font-bold text-yellow-600 bg-yellow-50 flex flex-col items-center justify-center px-3 py-1.5 rounded-xl border border-yellow-100 shadow-xs mx-auto min-w-[80%] text-center"; 
                 r.innerHTML = `<div>🎉 สำเร็จเป้าหมายสูงสุดแล้ว!</div>`; 
             }
             else if (coins >= t2) { 
-                b.className = "inline-block px-6 py-2 rounded-full text-xl font-bold bg-gray-400 text-white shadow-sm"; 
+                b.className = "inline-block px-3 py-0.5 rounded-full text-xs font-bold bg-gray-400 text-white shadow-xs"; 
                 b.innerText = `🥈 หลุม 2 เงินสะสม: ${m2} บ.`; 
-                r.className = "text-xl font-bold text-amber-600 bg-amber-50 flex flex-col items-center justify-center px-5 py-2.5 rounded-2xl border border-amber-100 shadow-sm mx-auto min-w-[80%] text-center"; 
-                r.innerHTML = `<div>อีก 🪙 ${t3 - coins} เหรียญ ถึงหลุม 3</div><div class="text-xl font-bold mt-0.5 text-amber-600">(${m3} บ.)</div>`; 
+                r.className = "text-xs font-bold text-amber-600 bg-amber-50 flex flex-col items-center justify-center px-3 py-1.5 rounded-xl border border-amber-100 shadow-xs mx-auto min-w-[80%] text-center"; 
+                r.innerHTML = `<div>อีก 🪙 ${t3 - coins} เหรียญ ถึงหลุม 3 (${m3} บ.)</div>`; 
             }
             else if (coins >= t1) { 
-                b.className = "inline-block px-6 py-2 rounded-full text-xl font-bold bg-amber-600 text-white shadow-sm"; 
+                b.className = "inline-block px-3 py-0.5 rounded-full text-xs font-bold bg-amber-600 text-white shadow-xs"; 
                 b.innerText = `🥉 หลุม 1 เงินสะสม: ${m1} บ.`; 
-                r.className = "text-xl font-bold text-gray-600 bg-gray-50 flex flex-col items-center justify-center px-5 py-2.5 rounded-2xl border border-gray-100 shadow-sm mx-auto min-w-[80%] text-center"; 
-                r.innerHTML = `<div>อีก 🪙 ${t2 - coins} เหรียญ ถึงหลุม 2</div><div class="text-xl font-bold mt-0.5 text-gray-600">(${m2} บ.)</div>`; 
+                r.className = "text-xs font-bold text-gray-600 bg-gray-50 flex flex-col items-center justify-center px-3 py-1.5 rounded-xl border border-gray-100 shadow-xs mx-auto min-w-[80%] text-center"; 
+                r.innerHTML = `<div>อีก 🪙 ${t2 - coins} เหรียญ ถึงหลุม 2 (${m2} บ.)</div>`; 
             }
             else { 
-                b.className = "inline-block px-6 py-2 rounded-full text-xl font-bold bg-gray-200 text-gray-700 shadow-sm"; 
+                b.className = "inline-block px-3 py-0.5 rounded-full text-xs font-bold bg-gray-200 text-gray-700 shadow-xs"; 
                 b.innerText = "⚪ กำลังเดินทางไปหลุมแรก"; 
-                r.className = "text-xl font-bold text-emerald-600 bg-emerald-50 flex flex-col items-center justify-center px-5 py-2.5 rounded-2xl border border-emerald-100 shadow-sm mx-auto min-w-[80%] text-center"; 
-                r.innerHTML = `<div>อีก 🪙 ${t1 - coins} เหรียญ ถึงหลุม 1</div><div class="text-xl font-bold mt-0.5 text-emerald-600">(${m1} บ.)</div>`; 
+                r.className = "text-xs font-bold text-emerald-600 bg-emerald-50 flex flex-col items-center justify-center px-3 py-1.5 rounded-xl border border-emerald-100 shadow-xs mx-auto min-w-[80%] text-center"; 
+                r.innerHTML = `<div>อีก 🪙 ${t1 - coins} เหรียญ ถึงหลุม 1 (${m1} บ.)</div>`; 
             }
 
             // อัปเดต UI โปรไฟล์และยศ
@@ -768,7 +758,7 @@
             document.getElementById('p_rankLabel').innerText = style.name;
 
             const container = document.getElementById('rankBadgeContainer');
-            container.className = `relative inline-flex items-center ${style.badgeBg} ${style.badgeText} text-[9px] font-bold px-2 py-0.5 rounded-full w-max mt-0.5 shadow-xs border ${style.border} cursor-pointer`;
+            container.className = `relative inline-flex items-center ${style.badgeBg} ${style.badgeText} text-[8px] font-bold px-1.5 py-0.5 rounded-full w-max mt-0.5 shadow-xs border ${style.border} cursor-pointer`;
 
             const rankSelect = document.getElementById('p_rankSelect');
             rankSelect.innerHTML = RANKS.map(r => `<option value="${r}" ${r === p_rank ? 'selected' : ''}>${rankStyles[r].name}</option>`).join('');
