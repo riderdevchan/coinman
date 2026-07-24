@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coin Man - สถิติระบบ</title>
+    <title>Coin Man - สถิติระบบ & ดาวน์โหลด</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -22,7 +22,7 @@
             <p class="text-xs text-slate-400">เฉพาะผู้พัฒนาระบบเท่านั้น (#RiderdevChan)</p>
         </div>
 
-        <!-- กล่องแสดงยอดดาวน์โหลด/ติดตั้ง -->
+        <!-- กล่องแสดงยอดดาวน์โหลด/ติดตั้งสะสม -->
         <div class="bg-slate-900/80 border border-slate-700/60 rounded-2xl p-5 space-y-2 shadow-inner">
             <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider">ยอดการกดติดตั้งสะสม</p>
             
@@ -32,39 +32,42 @@
             </div>
         </div>
 
-        <!-- ปุ่มอัปเดต และ ปุ่มกลับหน้าหลัก -->
-        <div class="space-y-2 pt-2">
+        <!-- ปุ่มควบคุมและลิงก์ทางลัด -->
+        <div class="space-y-2.5 pt-2">
             <button onclick="fetchCount()" class="w-full bg-amber-500 hover:bg-amber-600 active:scale-95 text-slate-950 font-bold text-sm py-3 rounded-xl transition shadow-md flex items-center justify-center gap-2">
                 🔄 อัปเดตยอดล่าสุด
             </button>
             
-            <a href="index.html" class="block w-full bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold text-xs py-2.5 rounded-xl transition">
-                🏠 กลับหน้าหลัก Coin Man
-            </a>
+            <div class="grid grid-cols-2 gap-2">
+                <a href="index.html" class="block w-full bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold text-xs py-2.5 rounded-xl transition text-center flex items-center justify-center gap-1">
+                    🏠 หน้าหลัก
+                </a>
+                <a href="001.html" class="block w-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs py-2.5 rounded-xl transition text-center flex items-center justify-center gap-1 shadow-sm">
+                    🧪 ไปหน้า 001
+                </a>
+            </div>
         </div>
 
     </div>
 
     <script>
-        // ฟังก์ชันดึงยอดสถิติการดาวน์โหลดแบบปลอดภัย
+        // ฟังก์ชันดึงยอดสถิติการดาวน์โหลดแบบปลอดภัย 100%
         async function fetchCount() {
             const countEl = document.getElementById('downloadCount');
             countEl.innerText = "⏳";
 
             try {
-                // ดึงสถิติจาก Counter API (เปลี่ยนไปใช้ hit API ที่เสถียรกว่า)
                 const res = await fetch('https://api.counterapi.dev/v1/coinman_riderdevchan/downloads');
                 
                 if (res.ok) {
                     const data = await res.json();
                     countEl.innerText = data.value || 0;
                 } else {
-                    // หากยังไม่มีคีย์ ให้สั่งเซ็ตค่าเริ่มต้นเป็น 0
                     countEl.innerText = "0";
                 }
             } catch (err) {
                 console.error(err);
-                countEl.innerText = "0"; // แสดงเป็น 0 แทนคำว่าข้อผิดพลาด เพื่อความสวยงาม
+                countEl.innerText = "0";
             }
         }
 
